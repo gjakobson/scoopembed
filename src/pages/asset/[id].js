@@ -35,7 +35,7 @@ const Asset = ({ id }) => {
         <meta charSet="UTF-8" />
 
         {/* Custom link for iframely app */}
-        <link rel="iframely app" href={`https://embed.scoophonalytics.com/asset/${id}`} media="height=575,scrolling=no" />
+        <link rel="iframely app" href={`https://embed.scoopanalytics.com/asset/${id}`} media="height=575,scrolling=no" />
 
 
         <link rel="alternate" type="application/json+oembed" href={`https://embed.scoopanalytics.com/api/oembed?format=json&url=https://embed.scoopanalytics.com/asset/${id}`} />
