@@ -38,7 +38,7 @@ const Asset = ({ id }) => {
         <link rel="iframely app" href={`https://embed.scoopanalytics.com/asset/${id}`} media="height=575,scrolling=no" />
 
 
-        <link rel="alternate" type="application/json+oembed" href={`https://embed.scoopanalytics.com/api/oembed/{id}?format=json&url=https://embed.scoopanalytics.com/asset/${id}`} />
+        <link rel="alternate" type="application/json+oembed" href={`https://embed.scoopanalytics.com/api/oembed/${id}?format=json&url=https://embed.scoopanalytics.com/asset/${id}`} />
       </Head>
       {isIdEven ? <ChartComponentOne /> : <ChartComponentTwo />}
     </div>
