@@ -93,19 +93,19 @@ const ChartComponentOne = () => {
         "Lost",
         "Ending Pipeline"
       ],
-      axisLabel: { color: "#6E7079" },
-      nameTextStyle: { color: "#6E7079" },
-      axisLine: { lineStyle: { color: "#6E7079" } }
+      axisLabel: { color: "##ced1db" },
+      nameTextStyle: { color: "##ced1db" },
+      axisLine: { lineStyle: { color: "##ced1db" } }
     },
     yAxis: [
       {
         name: "Amount",
         type: "value",
         alignTicks: true,
-        axisLabel: { color: "#6E7079" },
+        axisLabel: { color: "##ced1db" },
         position: "left",
-        nameTextStyle: { color: "#6E7079" },
-        axisLine: { lineStyle: { color: "#6E7079" } }
+        nameTextStyle: { color: "##ced1db" },
+        axisLine: { lineStyle: { color: "##ced1db" } }
       }
     ]
   });
