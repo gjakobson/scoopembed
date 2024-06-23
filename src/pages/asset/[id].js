@@ -3,7 +3,7 @@ import Head from 'next/head';
 import dynamic from 'next/dynamic';
 
 const ChartComponentOne = dynamic(() => import('./ChartComponentOne'), { ssr: false });
-const ChartComponentTwo = dynamic(() => import('./ChartComponentTwo'), { ssr: false });
+const SheetletComponent = dynamic(() => import('./SheetletComponent'), { ssr: false });
 
 export async function getServerSideProps(context) {
   const { id } = context.params;
@@ -40,7 +40,7 @@ const Asset = ({ id }) => {
 
         <link rel="alternate" type="application/json+oembed" href={`https://embed.scoopanalytics.com/api/oembed/${id}?format=json&url=https://embed.scoopanalytics.com/asset/${id}`} />
       </Head>
-      {isIdEven ? <ChartComponentOne /> : <ChartComponentTwo />}
+      {isIdEven ? <ChartComponentOne /> : <SheetletComponent />}
     </div>
   );
 };
