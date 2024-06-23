@@ -57,7 +57,6 @@ export class Server {
         action.userID = this.userID;
 
         const url = this.token ? "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserverdev": "http://localhost:8080/app/scoop";
-        console.log("making sheetPostData call: ", JSON.stringify(action))
 
         const response = await fetch(url, {
             method: "POST",

@@ -1,31 +1,26 @@
 
-import { HotTable } from "@handsontable/react";
+import dynamic from 'next/dynamic';
+
+const HotTable = dynamic(() => import('@handsontable/react').then(mod => mod.HotTable), { ssr: false });
 import React, { useRef, useState, useEffect } from "react";
 import Handsontable from "handsontable";
 import { textRenderer } from "handsontable/renderers/textRenderer";
 import { ServerContext } from "../api/SheetState";
 import { Server } from '../api/Server'
-// import { result } from "./data";
 
-const SheetletComponent = () => {
 
-    const content = {
+const SheetletComponent = ({
+    sheetletId = "SheetletElement-0.35501857358264255",
+    sheetRange = {
+        "sheetType": "LiveSheet",
         "worksheetID": "1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY",
-        "worksheetRange": "WeightedPipeline",
-        "worksheetNum": 1,
-        "workspaceID": "W231",
-        "worksheetURL": "https://docs.google.com/spreadsheets/d/1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY/edit"
-    }
+        "rangeName": "WeightedPipeline"
+    },
+    setWorksheetID,
+    isBlending
+}) => {
+    console.log("sheetRange: ", sheetRange)
 
-    const id = "0.9700277987238817";
-
-
-    const sheetletId = `SheetletElement-${id}`;
-    const worksheetID = content.worksheetID;
-    const worksheetRange = content.worksheetRange;
-    const worksheetNum = content.worksheetNum;
-    const worksheetName = content.worksheetName;
-    const worksheetURL = content.worksheetURL;
     const ariaLabel = { 'aria-label': 'description' };
 
     const [data, setData] = useState([]);
@@ -37,7 +32,7 @@ const SheetletComponent = () => {
     const hotTableComponent = useRef(null);
 
     const userID = "61cb586e-307a-4dd5-99be-044c8aba5ab3"
-    const workspaceID = content.workspaceID;
+    const workspaceID = "W283";
     const token = "eyJraWQiOiI3dVwvZmEwRWZmU2NzWHAyQmRNK1RmY2lENk9yR2lNdDBRaDdpNTR0cktQbz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI0NmMyZWE2OS02Y2JkLTQyYjYtYTRiNC1jOTE4NDM5NTgzNDYiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYmlydGhkYXRlIjoiMTA5NTM3OTE5OCIsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC51cy13ZXN0LTIuYW1hem9uYXdzLmNvbVwvdXMtd2VzdC0yXzRSeWx0cXlKNyIsInBob25lX251bWJlcl92ZXJpZmllZCI6dHJ1ZSwiY29nbml0bzp1c2VybmFtZSI6IjYxY2I1ODZlLTMwN2EtNGRkNS05OWJlLTA0NGM4YWJhNWFiMyIsIm9yaWdpbl9qdGkiOiJlNzU1NjAxMC01NzRkLTRlZDItODY5My1jZjk3OWYyYzg3MTUiLCJhdWQiOiI3NmF0cjYycm40aXVrOHVoajhyOGd0MzltcyIsImV2ZW50X2lkIjoiMWU1ZWVmMzgtZGJhMC00ZTRmLTg5NTItNjhkMWQzYzE5Yzg5IiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE3MTg3NjI5NTQsInBob25lX251bWJlciI6IisxNzAyODQ1NDQ4NSIsImV4cCI6MTcxOTExMjI3OCwiaWF0IjoxNzE5MDI1ODc4LCJqdGkiOiIwYzlkNzhjNC0zNzFmLTQ1MmEtODIyNy0xNGIxMTVlYmFiNTMiLCJlbWFpbCI6ImdhYmVAc2Nvb3AucmVwb3J0In0.EgbrJOBTapHK0vA7MXoS09bSkgB7tNMlsuKwtmVW-ILtdia_rhFNHjfYNE73bDMRvzQ482zA3JsNqqjti5TtqMQV8D5DH5bH1f9atxO8udfYhj2dU_EorC2DfV8FPyGI1yZ0eNFdHpNyE127YTNkNHegt3jG0QkoqzufQGVBh_wjb6DRKuG_cEl0UxUZE1KJNsWnDVU-xzM4tIjrIKghweUFYc1v4SmrlcGvPlOq7k_Ujh_ZzCI8sKZrOnMWcYPZsUSPveNkXpWedde_-WAj8PRQ5SL0DyTODLDJyYTsQSRMVFg_Ely92PCJgfkcdzFlry5k0rANrlSJwPQCtS4M4A"
 
 
@@ -47,6 +42,106 @@ const SheetletComponent = () => {
     const [suppressGrid, setSuppressGrid] = useState(false);
     const [suppressHeaders, setSuppressHeaders] = useState(true);
     const [locked, setLocked] = useState(false);
+
+    class ScoopEditor extends Handsontable.editors.TextEditor {
+
+        finishEditing(restoreOriginalValue = false, ctrlDown = false, callback) {
+            super.finishEditing(restoreOriginalValue, ctrlDown, callback);
+            if (!serverContext.serverData || !this.TEXTAREA.initialized)
+                return;
+            let value = this.getValue();
+            serverContext.enterValueInCell(sheetRange, value, this.row, this.col, serverContext.applyChanges, this.hot, serverContext.serverData.cells[this.row][this.col]?.t,
+                () => {
+                    dispatch(forceExplorerDataRefresh(sheetRange.worksheetID));
+                });
+            // Get the formatted results from the server
+            if (serverContext.serverData.cells[this.row][this.col]?.t && serverContext.serverData.cells[this.row][this.col]?.t.length > 0 && !serverContext.serverData.cells[this.row][this.col]?.f) {
+                let cell = serverContext.serverData.cells[this.row][this.col];
+                serverContext.getFormattedData(this.getValue(), cell.t, this.row, this.col, cell.b, (result, obj) => {
+                    this.hot.setDataAtCell(obj.row, obj.col, result.result);
+                    let worksheetID = serverContext?.serverData?.worksheetID;
+                });
+                console.log("formatting cell");
+            }
+            this.TEXTAREA.initialized = false;
+        }
+
+        beginEditing(initialValue = null, event) {
+            super.beginEditing(initialValue, event);
+            this.TEXTAREA.style.color = "#222";
+            var curCell = serverContext.serverData.cells[this.row][this.col];
+            if (curCell) {
+                if (curCell.f) {
+                    this.setValue('=' + curCell.f);
+                } else if (curCell.b) {
+                    // Boolean
+                    this.setValue(curCell.s);
+                } else if (curCell.d) {
+                    // Date
+                    this.setValue(curCell.s);
+                } else if (curCell.r) {
+                    this.setValue(curCell.r);
+                } else if (curCell.s) {
+                    this.setValue(curCell.s);
+                }
+                if (curCell.si) {
+                    let style = serverContext.serverData.styles[curCell.si];
+                    if (style) {
+                        let s = this.TEXTAREA.style;
+                        if (style.fontIndex !== null) {
+                            setFontStyle(s, style.fontIndex);
+                        }
+                    }
+                }
+            }
+            this.TEXTAREA.initialized = true;
+        }
+
+        open() {
+            super.open();
+            this.addHook('beforeOnCellMouseDown', (event, coords, TD, controller) => this.beforeOnCellMouseDown(event, coords, TD, controller));
+        }
+
+        close() {
+            super.close();
+            this.clearHooks();
+        }
+
+        getSheetColumn(colNumber) {
+            let result = "";
+            let numCharacters = 0;
+            let remainder = colNumber;
+            do {
+                result += String.fromCharCode(65 + remainder % 26);
+                remainder = ~~(remainder / 26) - 1;
+                numCharacters++;
+            } while (remainder >= 0);
+            let reverse = "";
+            for (let i = 0; i < numCharacters; i++) {
+                reverse += result[numCharacters - i - 1];
+            }
+            return reverse;
+        }
+
+
+        beforeOnCellMouseDown(event, coords, TD, controller) {
+            let val = this.getValue();
+            if (val && val.startsWith("=")) {
+                val += this.getSheetColumn(serverContext.serverData.startPos?.col + coords.col) + (coords.row + serverContext.serverData.startPos?.row + 1);
+                this.setValue(val);
+                event.stopImmediatePropagation();
+                event.preventDefault();
+            }
+        }
+
+        createElements() {
+            super.createElements();
+            this.TEXTAREA.setAttribute('data-hot-input', true); // Makes the element recognizable by HOT as its own component's element.
+            this.TEXTAREA_PARENT.innerText = '';
+            this.TEXTAREA_PARENT.appendChild(this.TEXTAREA);
+            this.TEXTAREA.initialized = false;
+        }
+    }
 
 
     function setFontStyle(s, fontIndex) {
@@ -71,7 +166,7 @@ const SheetletComponent = () => {
     }
 
     function scoopTextRenderer(instance, TD, row, col, prop, value, cellProperties) {
-        if (worksheetID && (worksheetNum !== null || worksheetName !== null || worksheetRange)) {
+        if (serverContext.serverData && Object.keys(serverContext.serverData).length > 0) {
             textRenderer(instance, TD, row, col, prop, value, cellProperties);
             let cell = serverContext.serverData.cells[row][col];
             if (!serverContext.settings.gridLines || suppressGrid) {
@@ -328,7 +423,7 @@ const SheetletComponent = () => {
             for (var i = 0; i < result.hiddenRows.length; i++) {
                 hidden.push(result.hiddenRows[i] - firstRow);
             }
-            setHiddenRows({rows: hidden});
+            setHiddenRows({ rows: hidden });
         } else {
             setHiddenRows(null);
         }
@@ -340,37 +435,30 @@ const SheetletComponent = () => {
 
 
     useEffect(() => {
-
         const getSheet = async () => {
-
             try {
                 const action = {
                     "action": "getSheet",
-                    "sheetRange": {
-                        "sheetType": "LiveSheet",
-                        "worksheetID": "1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY",
-                        "rangeName": "WeightedPipeline"
-                    },
-                    "aggregation": false,
-                    "workspaceID": "W283",
-                    "userID": "61cb586e-307a-4dd5-99be-044c8aba5ab3"
+                    "sheetRange": sheetRange,
+                    "aggregation": isBlending === false && true
                 }
                 console.log("action: ", action)
 
-                 await serverContext.server.sheetPostData(action, getResults);
+                await serverContext.server.sheetPostData(action, getResults);
             } catch (e) {
                 console.log("ERROR: ", e)
-            } 
+            }
         }
 
         if (!serverContext.serverData || !serverContext.serverData.data) {
             getSheet();
         }
-    }, [serverContext, worksheetRange]);
+    }, [serverContext]);
 
 
 
     return (
+        typeof window !== 'undefined' && (
         <HotTable
             ref={hotTableComponent}
             data={data}
@@ -384,6 +472,7 @@ const SheetletComponent = () => {
             hiddenRows={hiddenRows}
 
         />
+        )
     )
 
 }
