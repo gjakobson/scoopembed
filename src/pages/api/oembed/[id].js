@@ -13,9 +13,9 @@ export default function handler(req, res) {
       provider_url: "https://scoopanalytics.com",
       title: "Scoop Analytics Embedding",
       description: "Beautiful, easy data visualization and storytelling",
-      html: `<iframe src="https://embed.scoopanalytics.com/asset/${id}" frameborder="0" scrolling="no" height="575" width="700" style="width:100%;" title="Interactive or visual content"></iframe>`,
+      html: `<iframe src="https://embed.scoopanalytics.com/asset/${id}" frameborder="0" scrolling="no" height="575" width="400" style="width:100%;" title="Interactive or visual content"></iframe>`,
       width: 700,
-      height: 575
+      height: 400
     });
   }
   
