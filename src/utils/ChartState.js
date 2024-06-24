@@ -1,6 +1,6 @@
 import dayjs from "dayjs";
 import numeral from "numeral";
-import {areEquals, combineFilters, packFilter} from "../../utils/Filter";
+import {areEquals, combineFilters, packFilter} from "./Filter";
 
 /**
  * Class contains the following:

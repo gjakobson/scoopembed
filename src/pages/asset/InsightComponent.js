@@ -16,7 +16,7 @@ import CloseIconWhite from '../../../public/icons/CloseIconWhite.svg?url';
 import { Server } from '../api/Server'
 import {loadFromSavedInsight, fetchInsight} from '../api/InsightAPI';
 import {useApi} from '../api/api';
-import ChartState from "./ChartState";
+import ChartState from "../../utils/ChartState";
 import {OBJECT_TYPES} from "../api/types";
 
 const InsightComponent = ({
@@ -3805,18 +3805,20 @@ const InsightComponent = ({
     }, []); // Runs once on component mount
 
     const handleMenuClick = (event) => {
-        setAnchorEl(event.event.event.currentTarget);
-        if (config.view === 'chart') {
-            setStyle({
-                position: 'absolute',
-                left: event.event.event.clientX + 'px',
-                top: event.event.event.clientY + 'px',
-                minHeight: 300 + 'px'
-            })
-        } else {
-            setDrillColumn(event.drillColumn)
+        if (typeof window !== 'undefined') {
+            setAnchorEl(event.event.event.currentTarget);
+            if (config.view === 'chart') {
+                setStyle({
+                    position: 'absolute',
+                    left: event.event.event.clientX + 'px',
+                    top: event.event.event.clientY + 'px',
+                    minHeight: 300 + 'px'
+                });
+            } else {
+                setDrillColumn(event.drillColumn);
+            }
+            setSeriesName(event.seriesName);
         }
-        setSeriesName(event.seriesName);
     };
 
     const handleTableMenuClose = (event, col) => {
@@ -4091,10 +4093,10 @@ const InsightComponent = ({
             <Menu
                 id="basic-menu"
                 anchorEl={anchorEl}
-                container={document.getElementById('slide-container')}
+                container={typeof window !== 'undefined' ? document.getElementById('slide-container') : null}
                 open={openMenu}
                 onClose={handleChartMenuClose}
-                MenuListProps={{'aria-labelledby': 'basic-button'}}
+                MenuListProps={{ 'aria-labelledby': 'basic-button' }}
                 style={style}
             >
                 {config.view === 'table' ? getTableDrillItems() : getChartDrillItems()}
