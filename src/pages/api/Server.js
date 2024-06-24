@@ -10,9 +10,9 @@ export class Server {
         action.userID = this.userID;
 
         // if the length of the token is < 100, it's not a real jwt token but rather a guest token
-        const API_URL = this.token?.length < 100 ? process.env.REACT_APP_API_URL.replace("mobileapi","guest-mobileapi") : process.env.REACT_APP_API_URL;
+        // const API_URL = this.token?.length < 100 ? process.env.REACT_APP_API_URL.replace("mobileapi","guest-mobileapi") : process.env.REACT_APP_API_URL;
 
-        const url = this.token ? API_URL : "http://localhost:8080/app/scoop";
+        const url = this.token ? "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapidev" : "http://localhost:8080/app/scoop";
 
         const response = await fetch(url, {
             method: "POST",

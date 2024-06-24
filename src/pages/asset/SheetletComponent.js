@@ -1,12 +1,28 @@
-
 import dynamic from 'next/dynamic';
 
 const HotTable = dynamic(() => import('@handsontable/react').then(mod => mod.HotTable), { ssr: false });
-import React, { useRef, useState, useEffect } from "react";
+import React, { useRef, useState, useEffect, useMemo } from "react";
 import Handsontable from "handsontable";
+import isEqual from 'lodash/isEqual';
 import { textRenderer } from "handsontable/renderers/textRenderer";
 import { ServerContext } from "../api/SheetState";
 import { Server } from '../api/Server'
+
+const useDeepCompareEffect = (callback, dependencies) => {
+    const memoizedDependencies = useDeepCompareMemoize(dependencies);
+    useEffect(callback, memoizedDependencies);
+};
+
+const useDeepCompareMemoize = (value) => {
+    const ref = useRef();
+
+    if (!isEqual(value, ref.current)) {
+        ref.current = value;
+    }
+
+    return ref.current;
+};
+
 
 
 const SheetletComponent = ({
@@ -42,6 +58,14 @@ const SheetletComponent = ({
     const [suppressGrid, setSuppressGrid] = useState(false);
     const [suppressHeaders, setSuppressHeaders] = useState(true);
     const [locked, setLocked] = useState(false);
+
+    const memoizedSheetRange = useMemo(() => ({
+        "sheetType": "LiveSheet",
+        "worksheetID": "1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY",
+        "rangeName": "WeightedPipeline"
+    }), [sheetRange.sheetType, sheetRange.worksheetID, sheetRange.rangeName]);
+
+
 
     class ScoopEditor extends Handsontable.editors.TextEditor {
 
@@ -143,6 +167,81 @@ const SheetletComponent = ({
         }
     }
 
+    function handleClickIncludeColumn(event) {
+        var row = event.target.row;
+        var col = event.target.col;
+        var cell = serverContext.serverData.cells[row][col];
+        if (cell.r === 0) {
+            cell.r = 1;
+        } else {
+            cell.r = 0;
+        }
+    }
+
+    function setFontStyle(s, fontIndex) {
+        let font = serverContext.serverData.fonts[fontIndex];
+        if (font) {
+            if (font.bold) {
+                s.fontWeight = "bold";
+            }
+            if (font.italic) {
+                s.fontStyle = "italic";
+            }
+            if (font.height) {
+                s.fontSize = font.height + 'pt';
+            }
+            if (font.fcolor) {
+                s.color = '#' + font.fcolor;
+            }
+            if (font.family) {
+                s.fontFamily = font.family;
+            }
+        }
+    }
+
+    function afterColumnChange(event) {
+    }
+
+    function handleColumnChange(event) {
+        serverContext.serverData.cells[event.target.row][event.currentTarget.col].sheetObject.address = event.currentTarget.value;
+        var cell1 = serverContext.serverData.cells[event.target.row][1];
+        var cell2 = serverContext.serverData.cells[event.target.row][3];
+        cell1.f = cell1.sheetObject.address + "=" + cell2.sheetObject.address;
+        serverContext.updateCell(sheetRange, event.target.row, 1, cell1, afterColumnChange, hotTableComponent, serverContext);
+    }
+
+    function afterChange(changes) {
+        if (!changes)
+            return;
+        let coordinates = [];
+        for (let i = 0; i < changes.length; i++) {
+            if (changes[i][2] !== null && changes[i][3] === null) {
+                coordinates.push([changes[i][0], changes[i][1]]);
+            }
+        }
+        if (coordinates.length > 0) {
+            for (let i = 0; i < coordinates.length; i++) {
+                serverContext.serverData.cells[coordinates[i][0]][coordinates[i][1]] = undefined;
+            }
+            serverContext.deleteCells(sheetRange, coordinates);
+        }
+    }
+
+    function afterPaste(valueArray, targetCells) {
+        for (let x = targetCells[0].startCol; x <= targetCells[0].endCol; x++) {
+            for (let y = targetCells[0].startRow; y <= targetCells[0].endRow; y++) {
+                let cell = this.serverContext.serverData.cells[this.serverContext.lastCopySelection.row + y - targetCells[0].startRow][this.serverContext.lastCopySelection.column + x - targetCells[0].startCol];
+                this.enterValueInCell(sheetRange, cell.r ? cell.r : cell.s, y, x, this.applyChanges, hotTableComponent.current.hotInstance, cell.t,
+                    () => {
+                        dispatch(forceExplorerDataRefresh(sheetRange.worksheetID));
+                    });
+            }
+        }
+    }
+
+    function afterSelection(row, column, row2, column2, preventScrolling, selectionLayerLevel) {
+        serverContext.lastSelectionData = { row: row, column: column, row2: row2, column2: column2 };
+    }
 
     function setFontStyle(s, fontIndex) {
         let font = serverContext.serverData.fonts[fontIndex];
@@ -434,44 +533,45 @@ const SheetletComponent = ({
     }
 
 
-    useEffect(() => {
+    useDeepCompareEffect(() => {
         const getSheet = async () => {
             try {
                 const action = {
                     "action": "getSheet",
                     "sheetRange": sheetRange,
                     "aggregation": isBlending === false && true
-                }
-                console.log("action: ", action)
+                };
+                console.log("action: ", action);
 
                 await serverContext.server.sheetPostData(action, getResults);
             } catch (e) {
-                console.log("ERROR: ", e)
+                console.log("ERROR: ", e);
             }
-        }
+        };
 
         if (!serverContext.serverData || !serverContext.serverData.data) {
             getSheet();
         }
-    }, [serverContext]);
+    }, [serverContext, sheetRange]);
+    
 
 
 
     return (
         typeof window !== 'undefined' && (
-        <HotTable
-            ref={hotTableComponent}
-            data={data}
-            rowHeaders={suppressHeaders ? false : (rowHeaders ? rowHeaders : true)}
-            colHeaders={suppressHeaders ? false : (colHeaders ? colHeaders : true)}
-            width={'100%'}
-            colWidths={colWidths}
-            height={'400px'}
-            licenseKey="4f426-71673-ae630-24549-4580d"
-            renderer={scoopTextRenderer}
-            hiddenRows={hiddenRows}
+            <HotTable
+                ref={hotTableComponent}
+                data={data}
+                rowHeaders={suppressHeaders ? false : (rowHeaders ? rowHeaders : true)}
+                colHeaders={suppressHeaders ? false : (colHeaders ? colHeaders : true)}
+                width={'100%'}
+                colWidths={colWidths}
+                height={'400px'}
+                licenseKey="4f426-71673-ae630-24549-4580d"
+                renderer={scoopTextRenderer}
+                hiddenRows={hiddenRows}
 
-        />
+            />
         )
     )
 
