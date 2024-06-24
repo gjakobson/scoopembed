@@ -1,14 +1,18 @@
 import ReactECharts from "echarts-for-react";
 import { ScoopTheme } from '../../styles/Style';
 import React, { useRef, useState, useEffect, useMemo } from "react";
+import Image from "next/image";
 import {Box, IconButton, Menu, MenuItem} from "@mui/material";
 import _ from "lodash";
 // import {ScoopLoader} from "../common/Spinner/ScoopLoader";
 import Typography from "@mui/material/Typography";
 // import './Insight.css';
-import CaretRight from '../../icons/CaretRight.svg';
-import CloseIcon from '../../icons/CloseIcon.svg';
-import CloseIconWhite from '../../icons/CloseIconWhite.svg';
+//import CaretRight from '../../../public/icons/CaretRight.svg';
+import CaretRight from '../../../public/icons/CaretRight.svg?url';
+import CloseIcon from '../../../public/icons/CloseIcon.svg?url';
+import CloseIconWhite from '../../../public/icons/CloseIconWhite.svg?url';
+//import CloseIcon from '../../../public/icons/CloseIcon.svg';
+//import CloseIconWhite from '../../../public/icons/CloseIconWhite.svg';
 import { Server } from '../api/Server'
 import {loadFromSavedInsight, fetchInsight} from '../api/InsightAPI';
 import {useApi} from '../api/api';
@@ -3756,7 +3760,7 @@ const InsightComponent = ({
 
     const hasFetched = useRef(false);
     const fetchingRef = useRef(new Set());
-    const [isChartASkeleton, setIsChartASkeleton] = React.useState(false); 
+    const [isChartASkeleton, setIsChartASkeleton] = React.useState(false);
     const [insightsMaterialized, setInsightsMaterialized] = useState([]);
 
     const getInsightPrompts = () => {
@@ -4022,7 +4026,6 @@ const InsightComponent = ({
             overrides = _.omit(overrides, ['yAxis']);
         }
         option = _.merge(option, overrides)
-        console.log("option: ", option)
         return option
     }
 
@@ -4053,12 +4056,20 @@ const InsightComponent = ({
                                 {
                                     i + 1 === drillingHistory.length &&
                                     <IconButton sx={{padding: '4px'}} onClick={() => handleDeleteDrillingStep(step, i)}>
-                                        <img src={theme?.colorScheme?.darkTheme ? CloseIconWhite : CloseIcon} height={12} alt={'delete'} />
+                                        <Image
+                                            src={theme?.colorScheme?.darkTheme ? CloseIconWhite : CloseIcon}
+                                            height={12}
+                                            alt={'delete'}
+                                        />
                                     </IconButton>
                                 }
                                 {
                                     i < drillingHistory.length - 1 &&
-                                    <img src={CaretRight} alt={'caret-right'} style={{marginRight: '5px'}} />
+                                    <Image
+                                        src={CaretRight}
+                                        alt={'caret-right'}
+                                        style={{marginRight: '5px'}}
+                                    />
                                 }
                             </Box>
                         ))
@@ -4066,7 +4077,7 @@ const InsightComponent = ({
                 </Box>
             }
             {
-                validChart() &&  
+                validChart() &&
 
                             <ReactECharts
                                 option={getOptionWithOverrides()}
