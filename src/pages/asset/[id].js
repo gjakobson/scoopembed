@@ -3,7 +3,7 @@ import Head from 'next/head';
 import dynamic from 'next/dynamic';
 
 const ChartComponentOne = dynamic(() => import('./ChartComponentOne'), { ssr: false });
-const SheetletComponent = dynamic(() => import('./testHandsontable'), { ssr: false });
+const SheetletComponent = dynamic(() => import('./SheetletComponent'), { ssr: false });
 const InsightComponent = dynamic(() => import('./InsightComponent'), { ssr: false });
 
 export async function getServerSideProps(context) {
