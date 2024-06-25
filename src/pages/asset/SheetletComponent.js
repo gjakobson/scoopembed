@@ -23,7 +23,7 @@ const useDeepCompareMemoize = (value) => {
     return ref.current;
 };
 
-
+import 'handsontable/dist/handsontable.full.css';
 
 const SheetletComponent = ({
     sheetletId = "SheetletElement-0.35501857358264255",
