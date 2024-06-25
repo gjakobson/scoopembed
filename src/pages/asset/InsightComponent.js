@@ -3715,6 +3715,16 @@ const InsightComponent = ({
 
     const {postData} = useApi();
 
+
+
+useEffect(() => {
+  const interval = setInterval(() => {
+    chartState.getResults(config, null, activePrompts);
+  }, 10000); // 10 seconds
+
+  return () => clearInterval(interval); // Cleanup interval on component unmount
+}, [config, activePrompts, chartState]);
+
     const [style, setStyle] = React.useState({});
     const [anchorEl, setAnchorEl] = React.useState(null);
     const [seriesName, setSeriesName] = React.useState(null);
@@ -3877,6 +3887,7 @@ const InsightComponent = ({
         }
         setConfig({...config});
     }
+    
 
     function onChartClick(event) {
         handleMenuClick(event);

@@ -73,6 +73,7 @@ export default class ChartState {
         this.categories = undefined;
         this.config = config;
         this.setConfig = setConfig;
+        this.previousResult = config.result;
     }
 
     hasData() {
@@ -247,116 +248,144 @@ export default class ChartState {
         this.config = config;
         this.config.loading = true;
         var {
-            calendarType,
-            selectedItems,
-            period,
-            drillAttribute,
-            filter,
-            savedFilter,
-            selectedDates,
-            categoryAxis,
-            timeRange,
-            view,
-            worksheetID,
-            rangeName
+          calendarType,
+          selectedItems,
+          period,
+          drillAttribute,
+          filter,
+          savedFilter,
+          selectedDates,
+          categoryAxis,
+          timeRange,
+          view,
+          worksheetID,
+          rangeName
         } = config;
         let metrics = [];
         if (!worksheetID) {
-            for (let i = 0; i < selectedItems?.length; i++) {
-                let metric;
-                if (selectedItems[i].kpi) {
-                    metric = {
-                        metricName: selectedItems[i].kpi, reportSeriesTableID: selectedItems[i].reportSeriesTableID,
-                    }
-                } else {
-                    metric = {
-                        measureName: selectedItems[i].columnName,
-                        reportSeriesTableID: selectedItems[i].reportSeriesTableID,
-                    }
-                }
-                if (selectedDates) {
-                    let byDate = selectedDates.get(selectedItems[i].reportSeriesTableID + ":" + selectedItems[i].columnName);
-                    if (byDate) {
-                        metric.byDate = byDate;
-                    }
-                }
-                metrics.push(metric);
+          for (let i = 0; i < selectedItems?.length; i++) {
+            let metric;
+            if (selectedItems[i].kpi) {
+              metric = {
+                metricName: selectedItems[i].kpi, reportSeriesTableID: selectedItems[i].reportSeriesTableID,
+              }
+            } else {
+              metric = {
+                measureName: selectedItems[i].columnName,
+                reportSeriesTableID: selectedItems[i].reportSeriesTableID,
+              }
             }
+            if (selectedDates) {
+              let byDate = selectedDates.get(selectedItems[i].reportSeriesTableID + ":" + selectedItems[i].columnName);
+              if (byDate) {
+                metric.byDate = byDate;
+              }
+            }
+            metrics.push(metric);
+          }
         } else {
-            selectedItems.forEach(item => {
-                metrics.push({measureName: item.columnName})
-            })
+          selectedItems.forEach(item => {
+            metrics.push({measureName: item.columnName})
+          })
         }
         let action;
         if (categoryAxis === "Time" && !config.disableTimeSeries) {
-            action = {
-                "action": "getTimeSeries",
-                "metrics": metrics,
-                "calendarType": calendarType,
-                "period": period,
-                "split": view === 'chart',
-                "process": false
-            }
+          action = {
+            "action": "getTimeSeries",
+            "metrics": metrics,
+            "calendarType": calendarType,
+            "period": period,
+            "split": view === 'chart',
+            "process": false
+          }
         } else {
-            action = {
-                "action": "getDataset",
-                "metrics": metrics,
-                "period": period,
-                "categoryAxis": categoryAxis
-            };
+          action = {
+            "action": "getDataset",
+            "metrics": metrics,
+            "period": period,
+            "categoryAxis": categoryAxis
+          };
         }
         if (worksheetID && rangeName) {
-            action.worksheetID = worksheetID;
-            action.rangeName = rangeName;
+          action.worksheetID = worksheetID;
+          action.rangeName = rangeName;
         }
         if (timeRange) {
-            action.timeRange = timeRange;
-            if (action.timeRange === "Custom") {
-                if (this.config.from) {
-                    action.start = dayjs(this.config.from).format('MM/DD/YYYY')
-                }
-                if (this.config.to) {
-                    action.end = dayjs(this.config.to).format('MM/DD/YYYY')
-                }
+          action.timeRange = timeRange;
+          if (action.timeRange === "Custom") {
+            if (this.config.from) {
+              action.start = dayjs(this.config.from).format('MM/DD/YYYY')
             }
+            if (this.config.to) {
+              action.end = dayjs(this.config.to).format('MM/DD/YYYY')
+            }
+          }
         }
         if (prompts?.length > 0) {
-            const validPrompts = []
-            prompts.forEach(prompt => {
-                if (Array.isArray(prompt)) {
-                    prompt.forEach(p => {
-                        if (p.filterValue.values.length > 0 && p.filterValue.values[0] !== 'All') validPrompts.push(p)
-                    })
-                } else {
-                    if (prompt.filterValue.values.length > 0 && prompt.filterValue.values[0] !== 'All') validPrompts.push(prompt)
-                }
-            })
-            action.prompts = packFilter(validPrompts)
+          const validPrompts = []
+          prompts.forEach(prompt => {
+            if (Array.isArray(prompt)) {
+              prompt.forEach(p => {
+                if (p.filterValue.values.length > 0 && p.filterValue.values[0] !== 'All') validPrompts.push(p)
+              })
+            } else {
+              if (prompt.filterValue.values.length > 0 && prompt.filterValue.values[0] !== 'All') validPrompts.push(prompt)
+            }
+          })
+          action.prompts = packFilter(validPrompts)
         }
         if (drillAttribute) action.drillAttribute = drillAttribute;
         if (filter || savedFilter) {
-            if (savedFilter) {
-                action.filter = combineFilters(filter, savedFilter.filter);
-            } else {
-                action.filter = filter;
-            }
+          if (savedFilter) {
+            action.filter = combineFilters(filter, savedFilter.filter);
+          } else {
+            action.filter = filter;
+          }
         } else {
-            action.filter = undefined;
+          action.filter = undefined;
         }
         this.server.postData(
-            action,
-            (result, object) => {
+          action,
+          (result, object) => {
+            console.log("got result back: ", result.dataset);
+            console.log("pre result: ", this.previousDataset);
+            
+            // Sort function for deep comparison
+            const sortDataset = (dataset) => {
+                if (!dataset) return null;
+                if (dataset.metrics) {
+                    dataset.metrics.sort((a, b) => a.name.localeCompare(b.name));
+                }
+                if (dataset.series) {
+                    dataset.series.sort((a, b) => a.name.localeCompare(b.name));
+                    dataset.series.forEach(series => {
+                        if (series.data && Array.isArray(series.data)) {
+                            series.data.sort((a, b) => a - b);
+                        }
+                    });
+                }
+                return dataset;
+            };
+
+            const sortedNewDataset = sortDataset(_.cloneDeep(result.dataset));
+            const sortedPreviousDataset = this.previousDataset ? sortDataset(_.cloneDeep(this.previousDataset)) : null;
+
+            if (!_.isEqual(sortedNewDataset, sortedPreviousDataset)) {
+                this.previousDataset = sortedNewDataset; // Update previousDataset
                 if (config.worksheetID) this.drillAttributes = result.sheetColumns?.filter(col => !col.isMeasure).map(col => col.columnName);
                 if (result.dataset) {
-                    this.processServerResult(result.dataset, object, loadingCallback)
+                    this.processServerResult(result.dataset, object, loadingCallback);
                 } else {
-                    this.processServerResult(result, object, loadingCallback)
+                    this.processServerResult(result, object, loadingCallback);
                 }
-            },
-            this
+            } else {
+                console.log("same so skipping");
+            }
+          },
+          this
         );
-    }
-
+      }
+      
     getTheme(themeID) {
         if (this.workspaceMetadata && this.workspaceMetadata.themes) {
             for (let themeIndex = 0; themeIndex < this.workspaceMetadata.themes.length; themeIndex++) {
