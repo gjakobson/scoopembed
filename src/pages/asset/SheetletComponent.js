@@ -56,7 +56,7 @@ const SheetletComponent = ({
     const [serverContext, setServerContext] = useState(new ServerContext(server));
 
     const [suppressGrid, setSuppressGrid] = useState(false);
-    const [suppressHeaders, setSuppressHeaders] = useState(true);
+    const [suppressHeaders, setSuppressHeaders] = useState(false);
     const [locked, setLocked] = useState(false);
 
     const memoizedSheetRange = useMemo(() => ({
@@ -76,7 +76,7 @@ const SheetletComponent = ({
             let value = this.getValue();
             serverContext.enterValueInCell(sheetRange, value, this.row, this.col, serverContext.applyChanges, this.hot, serverContext.serverData.cells[this.row][this.col]?.t,
                 () => {
-                    dispatch(forceExplorerDataRefresh(sheetRange.worksheetID));
+                    //dispatch(forceExplorerDataRefresh(sheetRange.worksheetID));
                 });
             // Get the formatted results from the server
             if (serverContext.serverData.cells[this.row][this.col]?.t && serverContext.serverData.cells[this.row][this.col]?.t.length > 0 && !serverContext.serverData.cells[this.row][this.col]?.f) {
@@ -233,7 +233,7 @@ const SheetletComponent = ({
                 let cell = this.serverContext.serverData.cells[this.serverContext.lastCopySelection.row + y - targetCells[0].startRow][this.serverContext.lastCopySelection.column + x - targetCells[0].startCol];
                 this.enterValueInCell(sheetRange, cell.r ? cell.r : cell.s, y, x, this.applyChanges, hotTableComponent.current.hotInstance, cell.t,
                     () => {
-                        dispatch(forceExplorerDataRefresh(sheetRange.worksheetID));
+                        //dispatch(forceExplorerDataRefresh(sheetRange.worksheetID));
                     });
             }
         }
@@ -371,7 +371,7 @@ const SheetletComponent = ({
                             hotComponent: hotTableComponent.current.hotInstance,
                             serverContext: serverContext,
                             handler: () => {
-                                dispatch(forceExplorerDataRefresh(sheetRange.worksheetID));
+                                //dispatch(forceExplorerDataRefresh(sheetRange.worksheetID));
                             }
                         });
                     };
@@ -553,13 +553,14 @@ const SheetletComponent = ({
             getSheet();
         }
     }, [serverContext, sheetRange]);
-    
+
 
 
 
     return (
         typeof window !== 'undefined' && (
             <HotTable
+                editor={ScoopEditor}
                 ref={hotTableComponent}
                 data={data}
                 rowHeaders={suppressHeaders ? false : (rowHeaders ? rowHeaders : true)}
@@ -570,7 +571,9 @@ const SheetletComponent = ({
                 licenseKey="4f426-71673-ae630-24549-4580d"
                 renderer={scoopTextRenderer}
                 hiddenRows={hiddenRows}
-
+                afterChange={afterChange}
+                afterPaste={afterChange}
+                afterSelection={afterSelection}
             />
         )
     )

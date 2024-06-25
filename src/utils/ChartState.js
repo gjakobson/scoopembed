@@ -262,6 +262,7 @@ export default class ChartState {
           rangeName
         } = config;
         let metrics = [];
+        console.log(selectedItems)
         if (!worksheetID) {
           for (let i = 0; i < selectedItems?.length; i++) {
             let metric;
@@ -347,45 +348,47 @@ export default class ChartState {
         this.server.postData(
           action,
           (result, object) => {
-            console.log("got result back: ", result.dataset);
-            console.log("pre result: ", this.previousDataset);
-            
-            // Sort function for deep comparison
-            const sortDataset = (dataset) => {
-                if (!dataset) return null;
-                if (dataset.metrics) {
-                    dataset.metrics.sort((a, b) => a.name.localeCompare(b.name));
-                }
-                if (dataset.series) {
-                    dataset.series.sort((a, b) => a.name.localeCompare(b.name));
-                    dataset.series.forEach(series => {
-                        if (series.data && Array.isArray(series.data)) {
-                            series.data.sort((a, b) => a - b);
-                        }
-                    });
-                }
-                return dataset;
-            };
+            // console.log("got result back: ", result.dataset);
+            // console.log("pre result: ", this.previousDataset);
+            //
+            // // Sort function for deep comparison
+            // const sortDataset = (dataset) => {
+            //     if (!dataset) return null;
+            //     if (dataset.metrics) {
+            //         dataset.metrics.sort((a, b) => a.name.localeCompare(b.name));
+            //     }
+            //     if (dataset.series) {
+            //         dataset.series.sort((a, b) => a.name.localeCompare(b.name));
+            //         dataset.series.forEach(series => {
+            //             if (series.data && Array.isArray(series.data)) {
+            //                 series.data.sort((a, b) => a - b);
+            //             }
+            //         });
+            //     }
+            //     return dataset;
+            // };
+            //
+            // const sortedNewDataset = sortDataset(_.cloneDeep(result.dataset));
+            // const sortedPreviousDataset = this.previousDataset ? sortDataset(_.cloneDeep(this.previousDataset)) : null;
 
-            const sortedNewDataset = sortDataset(_.cloneDeep(result.dataset));
-            const sortedPreviousDataset = this.previousDataset ? sortDataset(_.cloneDeep(this.previousDataset)) : null;
+            // if (!_.isEqual(sortedNewDataset, sortedPreviousDataset)) {
+            //     this.previousDataset = sortedNewDataset; // Update previousDataset
+            //
+            // } else {
+            //     console.log("same so skipping");
+            // }
 
-            if (!_.isEqual(sortedNewDataset, sortedPreviousDataset)) {
-                this.previousDataset = sortedNewDataset; // Update previousDataset
-                if (config.worksheetID) this.drillAttributes = result.sheetColumns?.filter(col => !col.isMeasure).map(col => col.columnName);
-                if (result.dataset) {
-                    this.processServerResult(result.dataset, object, loadingCallback);
-                } else {
-                    this.processServerResult(result, object, loadingCallback);
-                }
-            } else {
-                console.log("same so skipping");
-            }
+              if (config.worksheetID) this.drillAttributes = result.sheetColumns?.filter(col => !col.isMeasure).map(col => col.columnName);
+              if (result.dataset) {
+                  this.processServerResult(result.dataset, object, loadingCallback);
+              } else {
+                  this.processServerResult(result, object, loadingCallback);
+              }
           },
           this
         );
       }
-      
+
     getTheme(themeID) {
         if (this.workspaceMetadata && this.workspaceMetadata.themes) {
             for (let themeIndex = 0; themeIndex < this.workspaceMetadata.themes.length; themeIndex++) {
