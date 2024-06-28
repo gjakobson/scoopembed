@@ -1,4 +1,3 @@
-import { useRouter } from 'next/router';
 import Head from 'next/head';
 import dynamic from 'next/dynamic';
 
@@ -11,7 +10,7 @@ export async function getServerSideProps(context) {
   const { query } = context;
 
   return {
-    props: { id, query }, // Pass the query parameters as props
+    props: { id, query: query || {} }, // Ensure query is always an object
   };
 }
 
