@@ -8,14 +8,14 @@ const InsightComponent = dynamic(() => import('./InsightComponent'), { ssr: fals
 
 export async function getServerSideProps(context) {
   const { id } = context.params;
+  const { query } = context;
+
   return {
-    props: { id },
+    props: { id, query }, // Pass the query parameters as props
   };
 }
 
-
-
-const Asset = ({ id }) => {
+const Asset = ({ id, query }) => {
   // temp to change the charts displayed based on the id
   const isIdEven = id && Number(id) % 2 === 0;
 
@@ -38,10 +38,9 @@ const Asset = ({ id }) => {
         {/* Custom link for iframely app */}
         <link rel="iframely app" href={`https://embed.scoopanalytics.com/asset/${id}`} media="height=300,scrolling=no" />
 
-
         <link rel="alternate" type="application/json+oembed" href={`https://embed.scoopanalytics.com/api/oembed/${id}?format=json&url=https://embed.scoopanalytics.com/asset/${id}`} />
       </Head>
-      {isIdEven ? <InsightComponent /> : <SheetletComponent />}
+      {isIdEven ? <InsightComponent id={id} query={query} /> : <SheetletComponent id={id} query={query} />}
     </div>
   );
 };

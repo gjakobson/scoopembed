@@ -25,7 +25,7 @@ const useDeepCompareMemoize = (value) => {
 
 import 'handsontable/dist/handsontable.full.css';
 
-const SheetletComponent = ({
+const SheetletComponent = ({ id, query,
     sheetletId = "SheetletElement-0.35501857358264255",
     sheetRange = {
         "sheetType": "LiveSheet",
@@ -35,7 +35,12 @@ const SheetletComponent = ({
     setWorksheetID,
     isBlending
 }) => {
-    console.log("sheetRange: ", sheetRange)
+
+    useEffect(() => {
+        console.log('ID:', id);
+        console.log('Query Params:', query);
+        // Perform any operations using id and query
+    }, [id, query]);
 
     const ariaLabel = { 'aria-label': 'description' };
 
@@ -558,24 +563,27 @@ const SheetletComponent = ({
 
 
     return (
-        typeof window !== 'undefined' && (
-            <HotTable
-                editor={ScoopEditor}
-                ref={hotTableComponent}
-                data={data}
-                rowHeaders={suppressHeaders ? false : (rowHeaders ? rowHeaders : true)}
-                colHeaders={suppressHeaders ? false : (colHeaders ? colHeaders : true)}
-                width={'100%'}
-                colWidths={colWidths}
-                height={'400px'}
-                licenseKey="4f426-71673-ae630-24549-4580d"
-                renderer={scoopTextRenderer}
-                hiddenRows={hiddenRows}
-                afterChange={afterChange}
-                afterPaste={afterChange}
-                afterSelection={afterSelection}
-            />
-        )
+        <>
+            {typeof window !== 'undefined' && (
+                <HotTable
+                    editor={ScoopEditor}
+                    ref={hotTableComponent}
+                    data={data}
+                    rowHeaders={suppressHeaders ? false : (rowHeaders ? rowHeaders : true)}
+                    colHeaders={suppressHeaders ? false : (colHeaders ? colHeaders : true)}
+                    width={'100%'}
+                    colWidths={colWidths}
+                    height={'400px'}
+                    licenseKey="4f426-71673-ae630-24549-4580d"
+                    renderer={scoopTextRenderer}
+                    hiddenRows={hiddenRows}
+                    afterChange={afterChange}
+                    afterPaste={afterChange}
+                    afterSelection={afterSelection}
+                />
+            )}
+            <p>{query.code}</p>
+        </>
     )
 
 }
