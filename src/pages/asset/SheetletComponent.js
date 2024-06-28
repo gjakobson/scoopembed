@@ -582,7 +582,7 @@ const SheetletComponent = ({ id, query,
                     afterSelection={afterSelection}
                 />
             )}
-            <p>{query.code}</p>
+            {typeof query.code !== 'undefined' && <p>{query.code}</p>}
         </>
     )
 
