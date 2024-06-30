@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import ReactECharts from 'echarts-for-react';
+import { useRouter } from 'next/router';
+import { Auth } from 'aws-amplify';
 
 const ChartComponentOne = () => {
   const [chartData, setChartData] = useState({
@@ -109,6 +111,26 @@ const ChartComponentOne = () => {
       }
     ]
   });
+
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const router = useRouter();
+
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const session = await Auth.currentSession();
+        const jwtToken = session.getIdToken().getJwtToken();
+        setToken(jwtToken);
+      } catch (error) {
+        router.push('/login');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    checkAuth();
+  }, [router]);
 
   useEffect(() => {
     const interval = setInterval(() => {

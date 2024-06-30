@@ -20,10 +20,13 @@ const Asset = ({ id, query: initialQuery }) => {
   const router = useRouter();
   const query = { ...initialQuery, ...router.query };
 
-  // Ensure query parameters are logged both on client and server
   useEffect(() => {
-    console.log('Query Params:', query);
-  }, [query]);
+    if (id === 'testOAuth') {
+      router.push('/asset/testOAuth');
+    }
+    // Add other conditions here if necessary
+  }, [id]);
+
 
   // temp to change the charts displayed based on the id
   const isIdEven = id && Number(id) % 2 === 0;
