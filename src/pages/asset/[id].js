@@ -20,7 +20,7 @@ export async function getServerSideProps(context) {
 
 const Asset = ({ id, userID, workspaceID, insightKey, insightID }) => {
   const isChart = id === 'chart';
-  const queryParam = `${userID}:${workspaceID}:${insightID}:${insightKey}`;
+  const queryParam = `${userID}:${workspaceID}:${insightKey}:${insightID}`;
 
   return (
     <div>
