@@ -93,7 +93,7 @@ const InsightComponent = ({
     useEffect(() => {
         if (chartState) {
             const interval = setInterval(() => {
-                chartState.getResults({...config, selectedItems: [{columnName: "Unweighted Amount"}, {columnName: "Weighted Amount"}]}, null, activePrompts);
+                chartState.getResults({...config}, null, activePrompts);
             }, 10000); // 10 seconds
 
             return () => clearInterval(interval); // Cleanup interval on component unmount

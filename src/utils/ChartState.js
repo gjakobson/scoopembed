@@ -262,7 +262,7 @@ export default class ChartState {
           rangeName
         } = config;
         let metrics = [];
-        console.log(selectedItems)
+        // console.log(selectedItems)
         if (!worksheetID) {
           for (let i = 0; i < selectedItems?.length; i++) {
             let metric;
