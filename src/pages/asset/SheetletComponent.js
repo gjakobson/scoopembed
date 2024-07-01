@@ -25,7 +25,7 @@ const useDeepCompareMemoize = (value) => {
 
 import 'handsontable/dist/handsontable.full.css';
 
-const SheetletComponent = ({ id, query,
+const SheetletComponent = ({ id, 
     sheetletId = "SheetletElement-0.35501857358264255",
     sheetRange = {
         "sheetType": "LiveSheet",
@@ -36,11 +36,7 @@ const SheetletComponent = ({ id, query,
     isBlending
 }) => {
 
-    useEffect(() => {
-        console.log('ID:', id);
-        console.log('Query Params:', query);
-        // Perform any operations using id and query
-    }, [id, query]);
+
 
     const ariaLabel = { 'aria-label': 'description' };
 
@@ -582,7 +578,7 @@ const SheetletComponent = ({ id, query,
                     afterSelection={afterSelection}
                 />
             )}
-            {typeof query?.code !== 'undefined' && <p>{query.code}</p>}
+
         </>
     )
 

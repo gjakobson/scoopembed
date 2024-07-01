@@ -1,8 +1,6 @@
-// /pages/asset/[id].js
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
-import { useEffect } from 'react';
 import withAuth from '@/hoc/withAuth';
 
 const SheetletComponent = dynamic(() => import('./SheetletComponent'), { ssr: false });
@@ -10,19 +8,18 @@ const InsightComponent = dynamic(() => import('./InsightComponent'), { ssr: fals
 
 export async function getServerSideProps(context) {
   const { id } = context.params;
-  const { query } = context;
+  const { q } = context.query;
+
+  // Split the query parameter `q`
+  const [userID, workspaceID, insightKey, insightID] = q ? q.split(':') : [];
 
   return {
-    props: { id, query: query || {} }, // Ensure query is always an object
+    props: { id, userID, workspaceID, insightKey, insightID }, // Pass the individual parameters as props
   };
 }
 
-const Asset = ({ id, query: initialQuery }) => {
-  const router = useRouter();
-  const query = { ...initialQuery, ...router.query };
-
-  // temp to change the charts displayed based on the id
-  const isIdEven = id && Number(id) % 2 === 0;
+const Asset = ({ id, userID, workspaceID, insightKey, insightID }) => {
+  const isChart = id === 'chart';
 
   return (
     <div>
@@ -38,16 +35,16 @@ const Asset = ({ id, query: initialQuery }) => {
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta charSet="UTF-8" />
         {/* Custom link for iframely app */}
-        <link rel="iframely app" href={`https://embed.scoopanalytics.com/asset/${id}`} media="height=300,scrolling=no" />
-        <link rel="alternate" type="application/json+oembed" href={`https://embed.scoopanalytics.com/api/oembed/${id}?format=json&url=https://embed.scoopanalytics.com/asset/${id}`} />
+        <link rel="iframely app" href={`https://embed.scoopanalytics.com/asset/${id}?userID=${userID}&workspaceID=${workspaceID}&insightKey=${insightKey}&insightID=${insightID}`} media="height=300,scrolling=no" />
+        <link rel="alternate" type="application/json+oembed" href={`https://embed.scoopanalytics.com/api/oembed/${id}?format=json&url=https://embed.scoopanalytics.com/asset/${id}?userID=${userID}&workspaceID=${workspaceID}&insightKey=${insightKey}&insightID=${insightID}`} />
       </Head>
-      <AuthenticatedContent isIdEven={isIdEven} id={id} query={query} />
+      <AuthenticatedContent isChart={isChart} id={id} userID={userID} workspaceID={workspaceID} insightID={insightID} insightKey={insightKey} />
     </div>
   );
 };
 
-const AuthenticatedContent = withAuth(({ isIdEven, id, query }) => {
-  return isIdEven ? <InsightComponent id={id} query={query} /> : <SheetletComponent id={id} query={query} />;
+const AuthenticatedContent = withAuth(({ isChart, id, userID, workspaceID, insightKey, insightID }) => {
+  return isChart ? <InsightComponent userID={userID} workspaceID={workspaceID} insightID={insightID} insightKey={insightKey} /> : <SheetletComponent />;
 });
 
 export default Asset;

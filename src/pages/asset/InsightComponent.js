@@ -17,6 +17,10 @@ import CloseIcon from '../../../public/icons/CloseIcon.svg?url';
 import CloseIconWhite from '../../../public/icons/CloseIconWhite.svg?url';
 
 const InsightComponent = ({
+    userID,
+    workspaceID,
+    insightID,
+    insightKey,
     workspaceMetadata = {},
     embeddedSizeProps = {
         "left": 0,
@@ -29,10 +33,6 @@ const InsightComponent = ({
     dateFlag,
     theme
 }) => {
-    const userID = "61cb586e-307a-4dd5-99be-044c8aba5ab3";
-    const workspaceID = "W283";
-    const insightID = "InsightElement-0.42107358573750164";
-    const insightKey = "I1467";
     const [config, setConfig] = useState(ChartState.getDefaultConfig());
     const [chartState, setChartState] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -51,41 +51,7 @@ const InsightComponent = ({
     const [drillingHistory, setDrillingHistory] = useState([]);
     const openMenu = Boolean(anchorEl);
     const isGuestMode = false;
-    const objects = [
-        {
-            "id": 0.6600656251742092,
-            "title": "Weighted Pipeline View",
-            "x": 240,
-            "y": 140,
-            "width": 540,
-            "height": 720,
-            "isBlank": true,
-            "type": "SheetletElement",
-            "content": {
-                "worksheetID": "1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY",
-                "worksheetRange": "WeightedPipeline",
-                "worksheetNum": 1,
-                "workspaceID": "W231",
-                "worksheetURL": "https://docs.google.com/spreadsheets/d/1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY/edit"
-            },
-            "shouldHideHeaders": false,
-            "shouldHideGrid": false
-        },
-        {
-            "id": 0.42107358573750164,
-            "title": "WeightedPipelineChart",
-            "x": 820,
-            "y": 140,
-            "width": 640,
-            "height": 720,
-            "isBlank": true,
-            "type": "InsightElement",
-            "content": {
-                "insightKey": "I1467",
-                "workspaceID": "W283"
-            }
-        }
-    ];
+    const objects = [];
 
     useEffect(() => {
         const checkAuth = async () => {
@@ -107,7 +73,7 @@ const InsightComponent = ({
             const newServer = new Server(workspaceID, userID, token);
             setServer(newServer);
         }
-    }, [token]);
+    }, [token, userID, workspaceID]);
 
     useEffect(() => {
         if (server) {
