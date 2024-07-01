@@ -23,14 +23,14 @@ const Asset = ({ id, query: initialQuery }) => {
 
   // temp to change the charts displayed based on the id
   const isIdEven = id && Number(id) % 2 === 0;
-
+// id will be hashed code to do API call and pull metadata about this code to figure out the correct workspaceID, userID etc.
   return (
     <div>
       <Head>
-        <title>Scoop chart embedding</title>
+        <title>Scoop Analytics</title>
         <meta name="description" content="Beautiful, easy data visualization and storytelling" />
         <link rel="canonical" href={`https://embed.scoopanalytics.com/asset/${id}`} />
-        <meta property="og:title" content="Scoop chart embedding" />
+        <meta property="og:title" content="Scoop Analytics" />
         <meta property="og:description" content="Beautiful, easy data visualization and storytelling" />
         <meta property="og:type" content="website" />
         <meta property="og:url" content={`https://embed.scoopanalytics.com/asset/${id}`} />
