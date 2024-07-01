@@ -1,11 +1,10 @@
 // src/pages/_app.js
 import "@/styles/globals.css";
-import { Amplify } from 'aws-amplify'; // Named import
+import { Amplify } from 'aws-amplify';
+import CssBaseline from '@mui/material/CssBaseline';
 import awsconfig from '../aws-exports';
 
 Amplify.configure({ ...awsconfig, ssr: true });
-
-console.log('awsconfig:', awsconfig);
 
 function App({ Component, pageProps }) {
   return <Component {...pageProps} />;

@@ -1,0 +1,68 @@
+.primary-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 6px !important;
+    font-family: Inter, sans-serif !important;
+    font-size: 16px !important;
+    text-transform: none !important;
+    width: 108px;
+    line-height: 110% !important;
+    color: #14092A !important;
+    min-height: 50px;
+}
+
+.primary-button-wide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border-radius: 6px !important;
+    font-family: Inter, sans-serif !important;
+    font-size: 16px !important;
+    text-transform: none !important;
+    width: 216px;
+    line-height: 110% !important;
+    color: #14092A !important;
+    min-height: 50px;
+}
+
+.primary-button.small {
+    min-height: 35px;
+    font-size: 14px !important;
+    white-space: nowrap;
+    min-width: fit-content;
+    padding: 10px 16px;
+}
+
+.button-purple {
+    background: #E50B54 !important;
+    color: #FFFFFF !important;
+}
+.button-grey {
+    background: #F2F2F2 !important;
+}
+
+.button-disabled {
+    color: #979099 !important;
+    background: #D0CDD1 !important;
+}
+
+.icon-button {
+    padding: 10px 10px !important;
+    aspect-ratio: 1/1;
+    background-color: #F2F2F2 !important;
+    border-radius: 5px !important;
+    width: min-content !important;
+    min-height: min-content !important;
+    min-width: min-content !important;
+}
+
+.button:hover {
+    background: #EEEEEEEE !important;
+}
+
+.button-purple:hover {
+    background: #BF0A46 !important;
+}

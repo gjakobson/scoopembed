@@ -9,12 +9,12 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "aws-amplify": "^5.3.11",
     "@emotion/react": "^11.11.4",
     "@emotion/styled": "^11.11.5",
     "@handsontable/react": "^13.1.0",
     "@mui/material": "^5.15.20",
     "@svgr/webpack": "^8.1.0",
+    "aws-amplify": "^5.3.11",
     "date-fns": "^3.6.0",
     "dayjs": "^1.11.11",
     "echarts": "^5.5.0",

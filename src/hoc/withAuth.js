@@ -1,4 +1,3 @@
-// src/hoc/withAuth.js
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 import { Auth } from 'aws-amplify';
@@ -11,8 +10,12 @@ const withAuth = (WrappedComponent) => {
     useEffect(() => {
       Auth.currentAuthenticatedUser()
         .then(() => setIsAuthenticated(true))
-        .catch(() => router.push('/login'));
-    }, []);
+        .catch(() => {
+          // Store the attempted URL for redirection after login
+          const redirectTo = router.asPath;
+          router.push(`/login?redirect=${encodeURIComponent(redirectTo)}`);
+        });
+    }, [router]);
 
     if (!isAuthenticated) return null;
 

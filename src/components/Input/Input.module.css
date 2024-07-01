@@ -1,0 +1,27 @@
+.input-container {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100%;
+    align-items: flex-start;
+}
+
+.input {
+    border-radius: 6px;
+    border: 1.5px solid #E3E3E3 !important;
+    color: #14092A !important;
+}
+
+.input-label {
+    color: #14092A;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+.input fieldset {
+    border: none !important;
+}
+
+.purple-border-input {
+    border: 1.5px solid #E50B54 !important;
+}
