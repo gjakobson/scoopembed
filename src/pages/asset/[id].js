@@ -1,3 +1,4 @@
+// /pages/asset/[id].js
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
@@ -20,10 +21,9 @@ const Asset = ({ id, query: initialQuery }) => {
   const router = useRouter();
   const query = { ...initialQuery, ...router.query };
 
-
   // temp to change the charts displayed based on the id
   const isIdEven = id && Number(id) % 2 === 0;
-// id will be hashed code to do API call and pull metadata about this code to figure out the correct workspaceID, userID etc.
+
   return (
     <div>
       <Head>
@@ -41,9 +41,13 @@ const Asset = ({ id, query: initialQuery }) => {
         <link rel="iframely app" href={`https://embed.scoopanalytics.com/asset/${id}`} media="height=300,scrolling=no" />
         <link rel="alternate" type="application/json+oembed" href={`https://embed.scoopanalytics.com/api/oembed/${id}?format=json&url=https://embed.scoopanalytics.com/asset/${id}`} />
       </Head>
-      {isIdEven ? <InsightComponent id={id} query={query} /> : <SheetletComponent id={id} query={query} />}
+      <AuthenticatedContent isIdEven={isIdEven} id={id} query={query} />
     </div>
   );
 };
 
-export default withAuth(Asset);
+const AuthenticatedContent = withAuth(({ isIdEven, id, query }) => {
+  return isIdEven ? <InsightComponent id={id} query={query} /> : <SheetletComponent id={id} query={query} />;
+});
+
+export default Asset;
