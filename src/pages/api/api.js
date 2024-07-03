@@ -3,12 +3,11 @@
 export const useApi = (token, otherURL) => {
   const userID = "61cb586e-307a-4dd5-99be-044c8aba5ab3"
   const workspaceID = "W283";
-  // Remove the hardcoded token
 
-  const apiURL = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapidev"
-  const isGuestMode = false;
 
-  const useAPIURL = isGuestMode ? apiURL.replace("mobile","guest-mobile") : apiURL;
+ // if the length of the token is < 100, it's not a real jwt token but rather a guest token
+ const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapidev"
+ const useAPIURL= token?.length < 100 ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : API_ENDPOINT;
 
   const postData = async (action) => {
     if (Array.isArray(action)) {

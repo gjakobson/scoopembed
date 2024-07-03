@@ -1,4 +1,3 @@
-// src/pages/asset/InsightComponent.js
 import ReactECharts from "echarts-for-react";
 import { ScoopTheme } from '../../styles/Style';
 import React, { useRef, useState, useEffect } from "react";
@@ -21,6 +20,7 @@ const InsightComponent = ({
     workspaceID,
     insightID,
     insightKey,
+    invite,
     workspaceMetadata = {},
     embeddedSizeProps = {
         "left": 0,
@@ -54,19 +54,25 @@ const InsightComponent = ({
     const objects = [];
 
     useEffect(() => {
-        const checkAuth = async () => {
-            try {
-                const session = await Auth.currentSession();
-                const jwtToken = session.getIdToken().getJwtToken();
-                setToken(jwtToken);
-            } catch (error) {
-                router.push('/login');
-            } finally {
-                setLoading(false);
-            }
-        };
-        checkAuth();
-    }, [router]);
+        if (invite) {
+            const token = invite.split('=')[1];
+            setToken(token);
+            setLoading(false);
+        } else {
+            const checkAuth = async () => {
+                try {
+                    const session = await Auth.currentSession();
+                    const jwtToken = session.getIdToken().getJwtToken();
+                    setToken(jwtToken);
+                } catch (error) {
+                    router.push('/login');
+                } finally {
+                    setLoading(false);
+                }
+            };
+            checkAuth();
+        }
+    }, [invite, router]);
 
     useEffect(() => {
         if (token) {
@@ -89,7 +95,6 @@ const InsightComponent = ({
             setPostData(() => apiPostData);
         }
     }, [token]);
-
     useEffect(() => {
         if (chartState) {
             const interval = setInterval(() => {
@@ -407,15 +412,14 @@ const InsightComponent = ({
             }
             {
                 validChart() &&
-
-                            <ReactECharts
-                                option={getOptionWithOverrides()}
-                                notMerge={true}
-                                lazyUpdate={true}
-                                // style={chartSetting}
-                                theme={ScoopTheme}
-                                onEvents={onEvents}
-                            />
+                <ReactECharts
+                    option={getOptionWithOverrides()}
+                    notMerge={true}
+                    lazyUpdate={true}
+                    // style={chartSetting}
+                    theme={ScoopTheme}
+                    onEvents={onEvents}
+                />
             }
             <Menu
                 id="basic-menu"

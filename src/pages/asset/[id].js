@@ -1,3 +1,4 @@
+// src/pages/asset/[id].js
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
@@ -11,16 +12,16 @@ export async function getServerSideProps(context) {
   const { q } = context.query;
 
   // Split the query parameter `q`
-  const [userID, workspaceID, insightKey, insightID] = q ? q.split(':') : [];
+  const [userID, workspaceID, insightKey, insightID, invite] = q ? q.split(':') : [];
 
   return {
-    props: { id, userID, workspaceID, insightKey, insightID }, // Pass the individual parameters as props
+    props: { id, userID, workspaceID, insightKey, insightID, invite: invite || null }, // Pass the individual parameters as props
   };
 }
 
-const Asset = ({ id, userID, workspaceID, insightKey, insightID }) => {
+const Asset = ({ id, userID, workspaceID, insightKey, insightID, invite }) => {
   const isChart = id === 'chart';
-  const queryParam = `${userID}:${workspaceID}:${insightKey}:${insightID}`;
+  const queryParam = `${userID}:${workspaceID}:${insightKey}:${insightID}${invite ? `:${invite}` : ''}`;
 
   return (
     <div>
@@ -39,13 +40,13 @@ const Asset = ({ id, userID, workspaceID, insightKey, insightID }) => {
         <link rel="iframely app" href={`https://embed.scoopanalytics.com/asset/${id}?q=${queryParam}`} media="height=300,scrolling=no" />
         <link rel="alternate" type="application/json+oembed" href={`https://embed.scoopanalytics.com/api/oembed/${id}?format=json&url=https://embed.scoopanalytics.com/asset/${id}?q=${queryParam}`} />
       </Head>
-      <AuthenticatedContent isChart={isChart} id={id} userID={userID} workspaceID={workspaceID} insightID={insightID} insightKey={insightKey} />
+      <AuthenticatedContent isChart={isChart} id={id} userID={userID} workspaceID={workspaceID} insightID={insightID} insightKey={insightKey} invite={invite} />
     </div>
   );
 };
 
-const AuthenticatedContent = withAuth(({ isChart, id, userID, workspaceID, insightKey, insightID }) => {
-  return isChart ? <InsightComponent userID={userID} workspaceID={workspaceID} insightID={insightID} insightKey={insightKey} /> : <SheetletComponent />;
+const AuthenticatedContent = withAuth(({ isChart, id, userID, workspaceID, insightKey, insightID, invite }) => {
+  return isChart ? <InsightComponent userID={userID} workspaceID={workspaceID} insightID={insightID} insightKey={insightKey} invite={invite} /> : <SheetletComponent />;
 });
 
 export default Asset;

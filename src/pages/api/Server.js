@@ -1,3 +1,4 @@
+// /src/pages/api/Server.js
 export class Server {
     constructor(workspaceID, userID, token) {
         this.workspaceID = workspaceID;
@@ -10,11 +11,12 @@ export class Server {
         action.userID = this.userID;
 
         // if the length of the token is < 100, it's not a real jwt token but rather a guest token
-        // const API_URL = this.token?.length < 100 ? process.env.REACT_APP_API_URL.replace("mobileapi","guest-mobileapi") : process.env.REACT_APP_API_URL;
+        const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapidev"
+        const useAPIURL= this.token?.length < 100 ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : API_ENDPOINT;
+       
+        // const url = this.token ? "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/guest-mobileapidev" : "http://localhost:8080/app/scoop";
 
-        const url = this.token ? "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapidev" : "http://localhost:8080/app/scoop";
-
-        const response = await fetch(url, {
+        const response = await fetch(useAPIURL, {
             method: "POST",
             mode: "cors",
             cache: "no-cache",
@@ -90,13 +92,13 @@ export class Server {
         action.workspaceID = this.workspaceID;
         action.userID = this.userID;
 
-        // if the length of the token is < 100, it's not a real jwt token but rather a guest token
-        const API_URL = this.token?.length < 100 ? process.env.REACT_APP_API_URL.replace("mobileapi","guest-mobileapi") : process.env.REACT_APP_API_URL;
+        const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapidev"
+        const useAPIURL= this.token?.length < 100 ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : API_ENDPOINT;
 
-        const url = this.token ? API_URL : "http://localhost:8080/app/scoop";
+        // const url = this.token ? API_URL : "http://localhost:8080/app/scoop";
 
         try {
-            const response = await fetch(url, {
+            const response = await fetch(useAPIURL, {
                 method: "POST",
                 mode: "cors",
                 cache: "no-cache",
