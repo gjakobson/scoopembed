@@ -6,15 +6,17 @@ const withAuth = (WrappedComponent) => {
   return (props) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [loading, setLoading] = useState(true);
+    const [token, setToken] = useState(null);  // Add token state
     const router = useRouter();
-    const { invite } = router.query;
+    const { invite } = props; // Use invite from props
 
     useEffect(() => {
+      console.log('invite', invite);
       if (invite) {
-        const token = invite.split('=')[1];
+        const tokenValue = invite.split('=')[1];
         setIsAuthenticated(true);
         setLoading(false);
-        props.token = token;
+        setToken(tokenValue);  // Set token value
       } else {
         Auth.currentAuthenticatedUser()
           .then(() => {
@@ -29,7 +31,7 @@ const withAuth = (WrappedComponent) => {
 
     if (loading) return null;
 
-    return isAuthenticated ? <WrappedComponent {...props} /> : null;
+    return isAuthenticated ? <WrappedComponent {...props} token={token} /> : null;  // Pass token as a prop
   };
 };
 

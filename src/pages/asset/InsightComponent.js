@@ -1,3 +1,4 @@
+// src/pages/asset/InsightComponent.js
 import ReactECharts from "echarts-for-react";
 import { ScoopTheme } from '../../styles/Style';
 import React, { useRef, useState, useEffect } from "react";
@@ -95,6 +96,7 @@ const InsightComponent = ({
             setPostData(() => apiPostData);
         }
     }, [token]);
+
     useEffect(() => {
         if (chartState) {
             const interval = setInterval(() => {

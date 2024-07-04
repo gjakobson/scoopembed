@@ -1,6 +1,4 @@
-// src/pages/asset/[id].js
 import Head from 'next/head';
-import { useRouter } from 'next/router';
 import dynamic from 'next/dynamic';
 import withAuth from '@/hoc/withAuth';
 
