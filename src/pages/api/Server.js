@@ -11,7 +11,7 @@ export class Server {
         action.userID = this.userID;
 
         // if the length of the token is < 100, it's not a real jwt token but rather a guest token
-        const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapidev"
+        const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapi"
         const useAPIURL= this.token?.length < 100 ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : API_ENDPOINT;
        
         // const url = this.token ? "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/guest-mobileapidev" : "http://localhost:8080/app/scoop";
@@ -92,7 +92,7 @@ export class Server {
         action.workspaceID = this.workspaceID;
         action.userID = this.userID;
 
-        const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapidev"
+        const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapi"
         const useAPIURL= this.token?.length < 100 ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : API_ENDPOINT;
 
         // const url = this.token ? API_URL : "http://localhost:8080/app/scoop";
