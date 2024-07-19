@@ -1,12 +1,50 @@
-// import { updateInsightContent, updateInsightTitle } from '../../../store/actions';
+import {DEFAULT_CHART_PREFERENCES} from "@/utils/styleConsts";
 
-export function loadFromSavedInsight(insight, setConfig, chartState, setIsChartASkeleton, dispatch, id, selectedItemToLoad, workspaceID, insightPrompts, workspaceMetadata) {
+export const fixFontScaleFactors = (insight) => {
+    const height = (window.innerHeight - 112)
+    const width = (window.innerWidth - 600)
+    insight.styleOverrides.title.textStyle.fontScaleFactor = {
+        x: insight.styleOverrides.title.textStyle.fontSize / width,
+        y: insight.styleOverrides.title.textStyle.fontSize / height
+    }
+    insight.styleOverrides.legend.textStyle.fontScaleFactor = {
+        x: insight.styleOverrides.legend.textStyle.fontSize / width,
+        y: insight.styleOverrides.legend.textStyle.fontSize / height
+    }
+    insight.styleOverrides.xAxis.axisLabel.fontScaleFactor = {
+        x: insight.styleOverrides.xAxis.axisLabel.fontSize / width,
+        y: insight.styleOverrides.xAxis.axisLabel.fontSize / height
+    }
+    insight.styleOverrides.yAxis.axisLabel.fontScaleFactor = {
+        x: insight.styleOverrides.yAxis.axisLabel.fontSize / width,
+        y: insight.styleOverrides.yAxis.axisLabel.fontSize / height
+    }
+    insight.styleOverrides.xAxis.nameTextStyle.fontScaleFactor = {
+        x: insight.styleOverrides.xAxis.nameTextStyle.fontSize / width,
+        y: insight.styleOverrides.xAxis.nameTextStyle.fontSize / height
+    }
+    insight.styleOverrides.yAxis.nameTextStyle.fontScaleFactor = {
+        x: insight.styleOverrides.yAxis.nameTextStyle.fontSize / width,
+        y: insight.styleOverrides.yAxis.nameTextStyle.fontSize / height
+    }
+}
+
+export function loadFromSavedInsight(
+    insight,
+    setConfig,
+    chartState,
+    id,
+    selectedItemToLoad,
+    workspaceID,
+    insightPrompts,
+    workspaceMetadata,
+    callBack
+) {
     if (!insight) {
         chartState.clear();
         return;
     }
-    if (!(insight.seriesTypeMap instanceof Map))
-        insight.seriesTypeMap = new Map();
+    if (!(insight.seriesTypeMap instanceof Map)) insight.seriesTypeMap = new Map();
     // START temp backwards stuff
     if (!insight.selectedTableKpis) {
         insight.selectedTableColumns = []
@@ -56,21 +94,28 @@ export function loadFromSavedInsight(insight, setConfig, chartState, setIsChartA
         }
     }
     if (!insight.worksheetColumns) insight.worksheetColumns = []
-    if (!insight.styleOverrides) insight.styleOverrides = {xAxis: {splitLine: {show: false}}}
+    if (!insight.styleOverrides) insight.styleOverrides = {...DEFAULT_CHART_PREFERENCES}
+    if (!insight.styleOverrides.title) insight.styleOverrides.title = {...DEFAULT_CHART_PREFERENCES.title}
+    if (!insight.styleOverrides.legend) insight.styleOverrides.legend = {...DEFAULT_CHART_PREFERENCES.legend}
+    if (!insight.styleOverrides.title.textStyle.fontScaleFactor) fixFontScaleFactors(insight)
+    if (!insight.styleOverrides.pie || !insight.styleOverrides.donut) {
+        insight.styleOverrides.pie = {...DEFAULT_CHART_PREFERENCES.pie}
+        insight.styleOverrides.donut = {...DEFAULT_CHART_PREFERENCES.donut}
+    }
+    if (insight.worksheetID && insight.categoryAxis === 'Time') insight.categoryAxis = 'All'
     // END temp backwards stuff
     if (!(insight.selectedDates instanceof Map))
         insight.selectedDates = new Map(Object.entries(insight.selectedDates));
     setConfig(insight);
     if (insight.view === 'table') {
-        chartState.getResults({...insight, view: 'chart'}, () => {chartState.getResults({...insight});});
+        chartState.getResults(
+            {...insight, view: 'chart'},
+            () => chartState.getResults({...insight}, callBack, insightPrompts),
+            insightPrompts
+        )
     } else {
-        chartState.getResults(insight, null, insightPrompts)
+        chartState.getResults(insight, callBack, insightPrompts)
     }
-    setIsChartASkeleton(false);
-    // dispatch(updateInsightContent(id, { "insightKey": selectedItemToLoad, "workspaceID": workspaceID }));
-    // if (typeof insight.insightName !== 'undefined') {
-    //     dispatch(updateInsightTitle(id, insight.insightName));
-    // }
 }
 
 export const fetchInsight = async (insightKey, postData) => {

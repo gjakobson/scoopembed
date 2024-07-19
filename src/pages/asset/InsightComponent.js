@@ -1,101 +1,58 @@
 // src/pages/asset/InsightComponent.js
 import ReactECharts from "echarts-for-react";
-import { ScoopTheme } from '../../styles/Style';
+import { ScoopTheme } from '@/styles/Style';
 import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { Box, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import _ from "lodash";
-import { Server } from '../api/Server';
 import { loadFromSavedInsight, fetchInsight } from '../api/InsightAPI';
-import { useApi } from '../api/api';
 import ChartState from "../../utils/ChartState";
 import { OBJECT_TYPES } from "../api/types";
-import { useRouter } from 'next/router';
-import { Auth } from 'aws-amplify';
 import CaretRight from '../../../public/icons/CaretRight.svg?url';
 import CloseIcon from '../../../public/icons/CloseIcon.svg?url';
 import CloseIconWhite from '../../../public/icons/CloseIconWhite.svg?url';
+import {useApi} from "@/pages/api/api";
+import {ScoopLoader} from "@/components/ScoopLoader/ScoopLoader";
 
 const InsightComponent = ({
-    userID,
+    token,
     workspaceID,
     insightID,
+    server,
     insightKey,
-    invite,
-    workspaceMetadata = {},
+    workspaceMetadata,
     embeddedSizeProps = {
         "left": 0,
         "width": "100%",
         "height": "calc(100% - 55px)"
     },
-    clickable = true,
     advanced,
     activePrompts = [],
-    dateFlag,
     theme
 }) => {
+
+    const { postData } = useApi(token);
     const [config, setConfig] = useState(ChartState.getDefaultConfig());
-    const [chartState, setChartState] = useState(null);
-    const [loading, setLoading] = useState(true);
-    const [token, setToken] = useState(null);
-    const [server, setServer] = useState(null);
-    const [postData, setPostData] = useState(null);
+    const [chartState, setChartState] = useState(new ChartState(server, config, setConfig));
     const hasFetched = useRef(false);
     const fetchingRef = useRef(new Set());
-    const [isChartASkeleton, setIsChartASkeleton] = useState(false);
-    const [insightsMaterialized, setInsightsMaterialized] = useState([]);
-    const router = useRouter();
     const [style, setStyle] = useState({});
     const [anchorEl, setAnchorEl] = useState(null);
     const [seriesName, setSeriesName] = useState(null);
     const [drillColumn, setDrillColumn] = useState(null);
     const [drillingHistory, setDrillingHistory] = useState([]);
     const openMenu = Boolean(anchorEl);
+    const [loading, setLoading] = useState(true);
     const isGuestMode = false;
     const objects = [];
 
     useEffect(() => {
-        if (invite) {
-            const token = invite.split('=')[1];
-            setToken(token);
-            setLoading(false);
-        } else {
-            const checkAuth = async () => {
-                try {
-                    const session = await Auth.currentSession();
-                    const jwtToken = session.getIdToken().getJwtToken();
-                    setToken(jwtToken);
-                } catch (error) {
-                    router.push('/login');
-                } finally {
-                    setLoading(false);
-                }
-            };
-            checkAuth();
-        }
-    }, [invite, router]);
-
-    useEffect(() => {
-        if (token) {
-            const newServer = new Server(workspaceID, userID, token);
-            setServer(newServer);
-        }
-    }, [token, userID, workspaceID]);
-
-    useEffect(() => {
-        if (server) {
-            const cs = new ChartState(server, config, setConfig);
+        if (workspaceMetadata) {
+            const cs = chartState;
             cs.workspaceMetadata = workspaceMetadata;
             setChartState(cs);
         }
-    }, [server]);
-
-    useEffect(() => {
-        if (token) {
-            const { postData: apiPostData } = useApi(token);
-            setPostData(() => apiPostData);
-        }
-    }, [token]);
+    }, [workspaceMetadata]);
 
     useEffect(() => {
         if (chartState) {
@@ -118,6 +75,7 @@ const InsightComponent = ({
 
     const updateInsight = () => {
         if (!hasFetched.current && insightKey && postData) {
+            setLoading(true)
             hasFetched.current = true;
             fetchInsight(insightKey, postData)
                 .then((result) => {
@@ -125,14 +83,13 @@ const InsightComponent = ({
                         result,
                         setConfig,
                         chartState,
-                        setIsChartASkeleton,
                         insightID,
                         insightKey,
                         workspaceID,
                         getInsightPrompts(),
-                        workspaceMetadata
+                        workspaceMetadata,
+                        () => setLoading(false)
                     );
-                    if (setInsightsMaterialized) setInsightsMaterialized(prevInsights => [...prevInsights, insightKey]);
                 })
                 .catch(error => {
                     console.error("Error fetching insight:", error);
@@ -232,18 +189,9 @@ const InsightComponent = ({
     };
 
     function validChart() {
-        if (!chartState) {
-            return false;
-        }
+        if (!chartState) return false;
         return chartState.series && chartState.series.length > 0 && ((chartState.result.dates && chartState.result.dates.length > 0) || chartState.series[0].data.length > 0);
     }
-
-    const chartSetting = {
-        height: embeddedSizeProps ? embeddedSizeProps.height : (window.innerHeight - 200) + "px",
-        marginLeft: embeddedSizeProps ? embeddedSizeProps.left : 300,
-        marginRight: embeddedSizeProps ? 0 : 300,
-        pointerEvents: clickable ? 'all' : 'none'
-    };
 
     const getChartDrillItems = () => {
         if (!chartState) {
@@ -349,20 +297,108 @@ const InsightComponent = ({
     };
 
     const getOptionWithOverrides = () => {
-        if (!chartState) {
-            return {};
+        let option = chartState.getOption()
+        if (theme) option = chartState.getOption(theme.themeID)
+        // here treat chart specific configs before doing the merge
+        let overrides = _.cloneDeep(config.styleOverrides)
+        // remove axis for pie and donut
+        if (config.seriesType === 'pie' || config.seriesType === 'donut') {
+            overrides.xAxis.show = false
+            overrides.yAxis.show = false
+            overrides.legend.icon = 'none'
         }
-        let option = chartState.getOption();
-        if (theme) option = chartState.getOption(theme.themeID);
-        let overrides = {...config.styleOverrides};
+        // apply font scale
+        const container = document.getElementById('scoop-element-container')
+        const height = container.offsetHeight
+        const width = container.offsetWidth
+        if (height > width) {
+            overrides.title.textStyle.fontSize = overrides.title.textStyle.fontScaleFactor.x * width
+            overrides.legend.textStyle.fontSize = overrides.legend.textStyle.fontScaleFactor.x * width
+            overrides.xAxis.axisLabel.fontSize = overrides.xAxis.axisLabel.fontScaleFactor.x * width
+            overrides.yAxis.axisLabel.fontSize = overrides.yAxis.axisLabel.fontScaleFactor.x * width
+            overrides.xAxis.nameTextStyle.fontSize = overrides.xAxis.nameTextStyle.fontScaleFactor.x * width
+            overrides.yAxis.nameTextStyle.fontSize = overrides.yAxis.nameTextStyle.fontScaleFactor.x * width
+        } else {
+            overrides.title.textStyle.fontSize = overrides.title.textStyle.fontScaleFactor.y * height
+            overrides.legend.textStyle.fontSize = overrides.legend.textStyle.fontScaleFactor.y * height
+            overrides.xAxis.axisLabel.fontSize = overrides.xAxis.axisLabel.fontScaleFactor.y * height
+            overrides.yAxis.axisLabel.fontSize = overrides.yAxis.axisLabel.fontScaleFactor.y * height
+            overrides.xAxis.nameTextStyle.fontSize = overrides.xAxis.nameTextStyle.fontScaleFactor.y * height
+            overrides.yAxis.nameTextStyle.fontSize = overrides.yAxis.nameTextStyle.fontScaleFactor.y * height
+        }
+        // distribute axis configs
         if (Array.isArray(option.yAxis) && overrides.yAxis) {
             option.yAxis.forEach((axisObject, i) => {
-                option.yAxis[i] = {...option.yAxis[i], ...overrides.yAxis};
-            });
-            overrides = _.omit(overrides, ['yAxis']);
+                option.yAxis[i] = { ...axisObject, ...overrides.yAxis }
+            })
+            overrides = _.omit(overrides, ['yAxis'])
         }
-        option = _.merge(option, overrides);
-        return option;
+        if (Array.isArray(option.xAxis) && overrides.xAxis) {
+            option.xAxis.forEach((axisObject, i) => {
+                option.xAxis[i] = { ...axisObject, ...overrides.xAxis }
+            })
+            overrides = _.omit(overrides, ['xAxis'])
+        }
+        // apply bar/waterfall configs
+        if (config.seriesType === 'waterfall') {
+            option.series.forEach((s, i) => {
+                if (s.name === 'positive') {
+                    option.series[i].itemStyle = { color: overrides.waterfall.upColor }
+                    option.series[i].data[0] = {
+                        ...option.series[i].data[0],
+                        itemStyle: { color: overrides.waterfall.startColor }
+                    }
+                }
+                if (s.name === 'negative') {
+                    option.series[i].itemStyle = { color: overrides.waterfall.downColor }
+                    const lastIndex = option.series[i].data.length - 1
+                    option.series[i].data[lastIndex] = {
+                        ...option.series[i].data[lastIndex],
+                        itemStyle: { color: overrides.waterfall.endColor }
+                    }
+                }
+            })
+        } else {
+            if (option.series.some(s => s.type === 'bar')) {
+                option.series.forEach((s, i) => {
+                    option.series[i] = { ...s, ...overrides.bar }
+                })
+            }
+        }
+        // apply line configs
+        if (option.series.some(s => s.type === 'line')) {
+            option.series.forEach((s, i) => {
+                option.series[i] = { ...s, ...overrides.line }
+            })
+        }
+        // apply pie/donut configs
+        if (config.seriesType === 'donut') {
+            option.series.forEach((s, i) => {
+                option.series[i] = { ...s, ...overrides.donut }
+            })
+        } else {
+            if (option.series.some(s => s.type === 'pie')) {
+                option.series.forEach((s, i) => {
+                    option.series[i] = { ...s, ...overrides.pie }
+                })
+            }
+        }
+        // apply max legends
+        const max = overrides.legend.maxLegends || 10
+        // TO-DO , Nesti/Pepe  Gabe put this try-catch to prevent page crash when data is undefined
+        try {
+            if (max !== 'all') option.legend.data = option?.legend?.data?.slice(0, max)
+        } catch (e) {
+            //console.log("data undefined, e=", e)
+        }
+        // omit props we dont wanna merge
+        overrides = _.omit(overrides, ['waterfall'])
+        overrides = _.omit(overrides, ['bar'])
+        overrides = _.omit(overrides, ['line'])
+        overrides = _.omit(overrides, ['pie'])
+        overrides = _.omit(overrides, ['donut'])
+        option = _.merge(option, overrides)
+        return option
     };
 
     return (
@@ -413,15 +449,16 @@ const InsightComponent = ({
                 </Box>
             }
             {
-                validChart() &&
-                <ReactECharts
-                    option={getOptionWithOverrides()}
-                    notMerge={true}
-                    lazyUpdate={true}
-                    // style={chartSetting}
-                    theme={ScoopTheme}
-                    onEvents={onEvents}
-                />
+                loading ?
+                    <ScoopLoader /> :
+                    (validChart() &&
+                    <ReactECharts
+                        option={getOptionWithOverrides()}
+                        notMerge={true}
+                        lazyUpdate={true}
+                        theme={ScoopTheme}
+                        onEvents={onEvents}
+                    />)
             }
             <Menu
                 id="basic-menu"
