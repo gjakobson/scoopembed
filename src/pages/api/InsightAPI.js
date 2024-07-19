@@ -1,31 +1,33 @@
 import {DEFAULT_CHART_PREFERENCES} from "@/utils/styleConsts";
 
 export const fixFontScaleFactors = (insight) => {
-    const height = (window.innerHeight - 112)
-    const width = (window.innerWidth - 600)
-    insight.styleOverrides.title.textStyle.fontScaleFactor = {
-        x: insight.styleOverrides.title.textStyle.fontSize / width,
-        y: insight.styleOverrides.title.textStyle.fontSize / height
-    }
-    insight.styleOverrides.legend.textStyle.fontScaleFactor = {
-        x: insight.styleOverrides.legend.textStyle.fontSize / width,
-        y: insight.styleOverrides.legend.textStyle.fontSize / height
-    }
-    insight.styleOverrides.xAxis.axisLabel.fontScaleFactor = {
-        x: insight.styleOverrides.xAxis.axisLabel.fontSize / width,
-        y: insight.styleOverrides.xAxis.axisLabel.fontSize / height
-    }
-    insight.styleOverrides.yAxis.axisLabel.fontScaleFactor = {
-        x: insight.styleOverrides.yAxis.axisLabel.fontSize / width,
-        y: insight.styleOverrides.yAxis.axisLabel.fontSize / height
-    }
-    insight.styleOverrides.xAxis.nameTextStyle.fontScaleFactor = {
-        x: insight.styleOverrides.xAxis.nameTextStyle.fontSize / width,
-        y: insight.styleOverrides.xAxis.nameTextStyle.fontSize / height
-    }
-    insight.styleOverrides.yAxis.nameTextStyle.fontScaleFactor = {
-        x: insight.styleOverrides.yAxis.nameTextStyle.fontSize / width,
-        y: insight.styleOverrides.yAxis.nameTextStyle.fontSize / height
+    if (typeof window !== 'undefined') {
+        const height = (window.innerHeight - 112)
+        const width = (window.innerWidth - 600)
+        insight.styleOverrides.title.textStyle.fontScaleFactor = {
+            x: insight.styleOverrides.title.textStyle.fontSize / width,
+            y: insight.styleOverrides.title.textStyle.fontSize / height
+        }
+        insight.styleOverrides.legend.textStyle.fontScaleFactor = {
+            x: insight.styleOverrides.legend.textStyle.fontSize / width,
+            y: insight.styleOverrides.legend.textStyle.fontSize / height
+        }
+        insight.styleOverrides.xAxis.axisLabel.fontScaleFactor = {
+            x: insight.styleOverrides.xAxis.axisLabel.fontSize / width,
+            y: insight.styleOverrides.xAxis.axisLabel.fontSize / height
+        }
+        insight.styleOverrides.yAxis.axisLabel.fontScaleFactor = {
+            x: insight.styleOverrides.yAxis.axisLabel.fontSize / width,
+            y: insight.styleOverrides.yAxis.axisLabel.fontSize / height
+        }
+        insight.styleOverrides.xAxis.nameTextStyle.fontScaleFactor = {
+            x: insight.styleOverrides.xAxis.nameTextStyle.fontSize / width,
+            y: insight.styleOverrides.xAxis.nameTextStyle.fontSize / height
+        }
+        insight.styleOverrides.yAxis.nameTextStyle.fontScaleFactor = {
+            x: insight.styleOverrides.yAxis.nameTextStyle.fontSize / width,
+            y: insight.styleOverrides.yAxis.nameTextStyle.fontSize / height
+        }
     }
 }
 

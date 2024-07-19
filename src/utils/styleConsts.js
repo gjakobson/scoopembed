@@ -131,8 +131,8 @@ export const AXIS_TEXT_DEFAULT_VALUES = {
     fontWeight: FONT_WEIGHTS[1].value,
     fontSize: 14,
     fontScaleFactor: {
-        x: 14 / (window.innerWidth - 600),
-        y: 14 / (window.innerHeight - 112)
+        x: 14 / ((typeof window !== 'undefined' ? window.innerWidth : 0) - 600),
+        y: 14 / ((typeof window !== 'undefined' ? window.innerHeight : 0) - 112)
     },
     color: '#6E7079',
     rotate: 0,
@@ -149,8 +149,8 @@ export const LEGEND_DEFAULT_VALUES = {
         fontWeight: FONT_WEIGHTS[2].value,
         fontSize: 12,
         fontScaleFactor: {
-            x: 12 / (window.innerWidth - 600),
-            y: 12 / (window.innerHeight - 112)
+            x: 12 / ((typeof window !== 'undefined' ? window.innerWidth : 0) - 600),
+            y: 12 / ((typeof window !== 'undefined' ? window.innerHeight : 0) - 112)
         },
         color: '#6E7079',
     },
@@ -177,8 +177,8 @@ export const TITLE_DEFAULT_VALUES = {
         fontWeight: FONT_WEIGHTS[2].value,
         fontSize: 36,
         fontScaleFactor: {
-            x: 36 / (window.innerWidth - 600),
-            y: 36 / (window.innerHeight - 112)
+            x: 36 / ((typeof window !== 'undefined' ? window.innerWidth : 0) - 600),
+            y: 36 / ((typeof window !== 'undefined' ? window.innerHeight : 0) - 112)
         },
         color: '#6E7079',
     },
@@ -207,8 +207,8 @@ export const TOOLTIP_DEFAULT_VALUES = {
         fontWeight: FONT_WEIGHTS[2].value,
         fontSize: 12,
         fontScaleFactor: {
-            x: 12 / (window.innerWidth - 600),
-            y: 12 / (window.innerHeight - 112)
+            x: 12 / ((typeof window !== 'undefined' ? window.innerWidth : 0) - 600),
+            y: 12 / ((typeof window !== 'undefined' ? window.innerHeight : 0) - 112)
         },
         color: '#000000'
     },
