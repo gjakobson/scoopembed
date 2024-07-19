@@ -4,6 +4,7 @@ import withAuth from '@/hoc/withAuth';
 
 const SheetletComponent = dynamic(() => import('./SheetletComponent'), { ssr: false });
 const InsightComponent = dynamic(() => import('./InsightComponent'), { ssr: false });
+const WebSocketTest = dynamic(() => import('../components/WebSocketTest'), { ssr: false });
 
 export async function getServerSideProps(context) {
   const { id } = context.params;
@@ -13,12 +14,13 @@ export async function getServerSideProps(context) {
   const [userID, workspaceID, insightKey, insightID, invite] = q ? q.split(':') : [];
 
   return {
-    props: { id, userID, workspaceID, insightKey, insightID, invite: invite || null }, // Pass the individual parameters as props
+    props: { id, userID, workspaceID, insightKey, insightID, invite: invite || null },
   };
 }
 
 const Asset = ({ id, userID, workspaceID, insightKey, insightID, invite }) => {
   const isChart = id === 'chart';
+  const isWebSocketTest = id === 'websocket-test';
   const queryParam = `${userID}:${workspaceID}:${insightKey}:${insightID}${invite ? `:${invite}` : ''}`;
 
   return (
@@ -34,16 +36,18 @@ const Asset = ({ id, userID, workspaceID, insightKey, insightID, invite }) => {
         <meta property="og:site_name" content="Scoop Analytics Test" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta charSet="UTF-8" />
-        {/* Custom link for iframely app */}
         <link rel="iframely app" href={`https://embed.scoopanalytics.com/asset/${id}?q=${queryParam}`} media="height=300,scrolling=no" />
         <link rel="alternate" type="application/json+oembed" href={`https://embed.scoopanalytics.com/api/oembed/${id}?format=json&url=https://embed.scoopanalytics.com/asset/${id}?q=${queryParam}`} />
       </Head>
-      <AuthenticatedContent isChart={isChart} id={id} userID={userID} workspaceID={workspaceID} insightID={insightID} insightKey={insightKey} invite={invite} />
+      <AuthenticatedContent isChart={isChart} isWebSocketTest={isWebSocketTest} id={id} userID={userID} workspaceID={workspaceID} insightID={insightID} insightKey={insightKey} invite={invite} />
     </div>
   );
 };
 
-const AuthenticatedContent = withAuth(({ isChart, id, userID, workspaceID, insightKey, insightID, invite }) => {
+const AuthenticatedContent = withAuth(({ isChart, isWebSocketTest, id, userID, workspaceID, insightKey, insightID, invite }) => {
+  if (isWebSocketTest) {
+    return <WebSocketTest />;
+  }
   return isChart ? <InsightComponent userID={userID} workspaceID={workspaceID} insightID={insightID} insightKey={insightKey} invite={invite} /> : <SheetletComponent />;
 });
 

@@ -1,0 +1,38 @@
+import React, { useEffect, useState } from 'react';
+
+const WebSocketTest = () => {
+  const [status, setStatus] = useState('Connecting...');
+  const [message, setMessage] = useState('');
+
+  useEffect(() => {
+    const socket = new WebSocket('wss://echo.websocket.org');
+
+    socket.onopen = () => {
+      setStatus('Connected');
+      socket.send('Hello, WebSocket!');
+    };
+
+    socket.onmessage = (event) => {
+      setMessage(`Received: ${event.data}`);
+    };
+
+    socket.onerror = (error) => {
+      setStatus('Error: ' + error.message);
+    };
+
+    socket.onclose = () => {
+      setStatus('Disconnected');
+    };
+
+    return () => {
+      socket.close();
+    };
+  }, []);
+
+  return React.createElement('div', null,
+    React.createElement('p', null, `WebSocket Status: ${status}`),
+    React.createElement('p', null, message)
+  );
+};
+
+export default WebSocketTest;
