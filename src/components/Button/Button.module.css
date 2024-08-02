@@ -1,4 +1,4 @@
-.primary-button {
+.primaryButton {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -13,7 +13,7 @@
     min-height: 50px;
 }
 
-.primary-button-wide {
+.primaryButtonWide {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -28,7 +28,7 @@
     min-height: 50px;
 }
 
-.primary-button.small {
+.primaryButtonSmall {
     min-height: 35px;
     font-size: 14px !important;
     white-space: nowrap;
@@ -36,20 +36,20 @@
     padding: 10px 16px;
 }
 
-.button-purple {
+.buttonPurple {
     background: #E50B54 !important;
     color: #FFFFFF !important;
 }
-.button-grey {
+.buttonGrey {
     background: #F2F2F2 !important;
 }
 
-.button-disabled {
+.buttonDisabled {
     color: #979099 !important;
     background: #D0CDD1 !important;
 }
 
-.icon-button {
+.iconButton {
     padding: 10px 10px !important;
     aspect-ratio: 1/1;
     background-color: #F2F2F2 !important;
@@ -63,6 +63,6 @@
     background: #EEEEEEEE !important;
 }
 
-.button-purple:hover {
+.buttonPurple:hover {
     background: #BF0A46 !important;
 }

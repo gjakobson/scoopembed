@@ -522,6 +522,22 @@ export default class ChartState {
                     this.series.push(positive);
                     this.series.push(negative);
                     break;
+                case 'pie':
+                case 'donut':
+                    this.series[i].type = "pie";
+                    this.series[i].stack = "all";
+                    this.series[i].areaStyle = {};
+                    this.series[i].barGap = undefined;
+                    this.series[i].barCategoryGap = undefined;
+                    if (this.series[i].data.some(d => !d.name)) {
+                        this.series[i].data = [...this.series[i].data].map((d, j) => (
+                            {value: d, name: this.categoryAxisValues ? this.categoryAxisValues[j] : ''})
+                        )
+                    }
+                    break;
+                case 'pictorialBar':
+                    this.series[i].type = 'pictorialBar';
+                    break;
                 default:
                     break;
             }

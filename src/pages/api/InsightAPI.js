@@ -35,7 +35,6 @@ export function loadFromSavedInsight(
     insight,
     setConfig,
     chartState,
-    id,
     selectedItemToLoad,
     workspaceID,
     insightPrompts,

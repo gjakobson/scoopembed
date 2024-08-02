@@ -1,0 +1,39 @@
+.selector-container {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    margin: 0px !important
+}
+
+#selector {
+    margin-top: 0px !important;
+}
+
+.selector {
+    padding: 0 !important;
+    width: 100%;
+    border-radius: 5px !important;
+}
+
+.selector-label {
+    color: #14092A;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+}
+
+.selector-label-bold {
+    font-size: 12px !important;
+    font-weight: 600 !important;
+}
+
+.selector-label-large {
+    font-size: 14px !important;
+}
+
+.purple-border-selector {
+    border: 1.5px solid #E50B54 !important
+}
+
+.purple-border-selector fieldset {
+    border: none;
+}

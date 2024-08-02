@@ -1,0 +1,1 @@
+export const PROMPT_UPDATED = 'PROMPT_UPDATED';

@@ -1,0 +1,80 @@
+.datePickerContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.datePickerInput {
+    height: 38px;
+    border: 1px solid rgba(0, 0, 0, 0.23);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+}
+
+.datePickerInput:hover {
+    cursor: pointer;
+}
+
+.datePickerPopup {
+    padding: 12px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+}
+
+.optionsAndCalendar {
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+}
+
+.rangeOptionsContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    margin-right: 8px;
+}
+
+.rangeOption {
+    width: 200px;
+    padding: 12px;
+    border-radius: 5px;
+    border: 1px solid #F2F2F2;
+}
+
+.rangeOptionSelected {
+    color: #E50B54;
+    background-color: #FCE7EE;
+    border: 1px solid transparent;
+}
+
+.rangeOption:hover {
+    cursor: pointer;
+}
+
+.calendarContainer {
+    width: 300px;
+    padding: 16px;
+    border: 1px solid #F2F2F2;
+    border-radius: 8px;
+}
+
+.datePickerFooter {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 8px;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.datePickerButton {
+    min-height: unset !important;
+    height: 30px !important;
+    min-width: unset !important;
+    width: 80px !important;
+}

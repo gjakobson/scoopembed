@@ -1,0 +1,59 @@
+.numericRangeContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.numericRangeInput {
+    height: 38px;
+    border: 1px solid rgba(0, 0, 0, 0.23);
+    border-radius: 5px;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+}
+
+.numeric-range-label {
+    color: #14092A;
+    font-family: Inter, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: -20px;
+}
+
+.numeric-range-input:hover {
+    cursor: pointer;
+}
+
+.numericRangePopup {
+    padding: 12px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+}
+
+.numericRangeFooter {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    margin-top: 8px;
+    gap: 8px;
+    align-items: flex-end;
+}
+
+.numericRangeButton {
+    min-height: unset !important;
+    height: 30px !important;
+    min-width: unset !important;
+    width: 80px !important;
+}
+
+.promptLabelLabel {
+    color: #14092A;
+    font-family: Inter, sans-serif;
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: -20px;
+}

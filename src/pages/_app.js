@@ -2,6 +2,7 @@
 import "@/styles/globals.css";
 import { Amplify } from 'aws-amplify';
 import CssBaseline from '@mui/material/CssBaseline';
+import 'react-calendar/dist/Calendar.css';
 import awsconfig from '../aws-exports';
 
 Amplify.configure({ ...awsconfig, ssr: true });

@@ -13,11 +13,11 @@ import CloseIcon from '../../../public/icons/CloseIcon.svg?url';
 import CloseIconWhite from '../../../public/icons/CloseIconWhite.svg?url';
 import {useApi} from "@/pages/api/api";
 import {ScoopLoader} from "@/components/ScoopLoader/ScoopLoader";
+import {PROMPT_UPDATED} from "@/utils/socketActions";
 
 const InsightComponent = ({
     token,
     workspaceID,
-    insightID,
     server,
     insightKey,
     workspaceMetadata,
@@ -26,8 +26,8 @@ const InsightComponent = ({
         "width": "100%",
         "height": "calc(100% - 55px)"
     },
-    advanced,
-    activePrompts = [],
+    serverUpdate,
+    designID,
     theme
 }) => {
 
@@ -45,6 +45,13 @@ const InsightComponent = ({
     const [loading, setLoading] = useState(true);
     const isGuestMode = false;
     const objects = [];
+    const container = typeof window !== 'undefined' ? document.getElementById('scoop-element-container') : {offsetWidth: 0, offsetHeight: 0}
+
+    useEffect(() => {
+        if (serverUpdate && serverUpdate.action === PROMPT_UPDATED && serverUpdate.designID === designID) {
+            // re-fetch with prompts
+        }
+    }, [serverUpdate])
 
     useEffect(() => {
         if (workspaceMetadata) {
@@ -57,12 +64,12 @@ const InsightComponent = ({
     useEffect(() => {
         if (chartState) {
             const interval = setInterval(() => {
-                chartState.getResults({...config}, null, activePrompts);
+                chartState.getResults({...config}, null);
             }, 10000); // 10 seconds
 
             return () => clearInterval(interval); // Cleanup interval on component unmount
         }
-    }, [config, activePrompts, chartState]);
+    }, [config, chartState]);
 
     const getInsightPrompts = () => {
         let prompts;
@@ -83,7 +90,6 @@ const InsightComponent = ({
                         result,
                         setConfig,
                         chartState,
-                        insightID,
                         insightKey,
                         workspaceID,
                         getInsightPrompts(),
@@ -212,14 +218,6 @@ const InsightComponent = ({
             });
         }
         let changeDrillAtts = [];
-        if (advanced && analyzeChanges && chartState.changeDrillAttributes?.length > 0) {
-            changeDrillAtts = advanced && analyzeChanges && chartState.changeDrillAttributes.map((item) => {
-                if (item === chartState.categoryAxis || item === chartState.config.drillAttribute) {
-                    return null;
-                }
-                return (<MenuItem key={item} value={item} onClick={handleChartMenuClose}>{item}</MenuItem>);
-            });
-        }
         return [...drillAtts, ...changeDrillAtts];
     };
 
@@ -308,7 +306,6 @@ const InsightComponent = ({
             overrides.legend.icon = 'none'
         }
         // apply font scale
-        const container = document.getElementById('scoop-element-container')
         const height = container.offsetHeight
         const width = container.offsetWidth
         if (height > width) {
@@ -404,7 +401,7 @@ const InsightComponent = ({
     return (
         <>
             {
-                embeddedSizeProps &&
+                embeddedSizeProps && drillingHistory.length > 0 &&
                 <Box className={'drilling-breadcrumbs-container'}>
                     {
                         drillingHistory.map((step, i) => (
@@ -450,9 +447,12 @@ const InsightComponent = ({
             }
             {
                 loading ?
-                    <ScoopLoader /> :
+                    <div style={{width: '100%', height: '100%', display: 'grid', placeContent: 'center'}}>
+                        <ScoopLoader size={container.offsetWidth * 0.1} />
+                    </div> :
                     (validChart() &&
                     <ReactECharts
+                        style={{height: '100%', width: '100%'}}
                         option={getOptionWithOverrides()}
                         notMerge={true}
                         lazyUpdate={true}
