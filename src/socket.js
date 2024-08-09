@@ -1,5 +1,5 @@
-import {io} from 'socket.io-client';
+// dev wss://5g3opj068a.execute-api.us-west-2.amazonaws.com/dev/
+// prod wss://yf8adv3utf.execute-api.us-west-2.amazonaws.com/production/
+const URL = 'wss://5g3opj068a.execute-api.us-west-2.amazonaws.com/dev/'
 
-const URL = 'https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserver/socket'
-
-export const socket = io(URL)
+export const socket = new WebSocket(URL)

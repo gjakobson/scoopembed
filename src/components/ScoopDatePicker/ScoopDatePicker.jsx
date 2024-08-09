@@ -100,18 +100,6 @@ export const ScoopDatePicker = ({value, onChange, range, containerSx, label, the
         }
     }
 
-    const getInnerValueDateString = () => {
-        if (!innerValue) {
-            return ''
-        } else {
-            if (range) {
-                return Array.isArray(innerValue) ? (innerValue[0].toDateString() + ' - ' + innerValue[1].toDateString()) : ''
-            } else {
-                return Array.isArray(innerValue) ? '' : innerValue.toDateString()
-            }
-        }
-    }
-
     return (
         <>
             <Box className={styles.datePickerContainer} sx={containerSx}>
@@ -141,21 +129,6 @@ export const ScoopDatePicker = ({value, onChange, range, containerSx, label, the
             >
                 <Box className={styles.datePickerPopup}>
                     <Box className={styles.optionsAndCalendar}>
-                        {
-                            range &&
-                            <Box className={styles.rangeOptionsContainer}>
-                                {
-                                    rangeOptions.map(option =>
-                                        <Box
-                                            className={`${styles.rangeOption} ${option === rangeOption ? styles.rangeOptionSelected : ''}`}
-                                            onClick={() => handleRangeOptionSelect(option)}
-                                        >
-                                            <Typography className={'inter'} sx={{fontSize: '14px', fontWeight: 600}}>{option}</Typography>
-                                        </Box>
-                                    )
-                                }
-                            </Box>
-                        }
                         <Box className={styles.calendarContainer}>
                             <Calendar
                                 value={innerValue}
@@ -166,9 +139,6 @@ export const ScoopDatePicker = ({value, onChange, range, containerSx, label, the
                         </Box>
                     </Box>
                     <Box className={styles.datePickerFooter}>
-                        <Box sx={{flex: 1}}>
-                            <Typography className={'inter'} sx={{fontSize: '14px'}}>{getInnerValueDateString()}</Typography>
-                        </Box>
                         <Button onClick={handleCancel} className={styles.datePickerButton}>Cancel</Button>
                         <Button onClick={handleApply} className={styles.datePickerButton} purple>Apply</Button>
                     </Box>

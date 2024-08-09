@@ -14,37 +14,26 @@ const PromptWrapperComponent = dynamic(() => import('./PromptWrapperComponent'),
 const WebSocketTest = dynamic(() => import('../components/WebSocketTest'), {ssr: false});
 
 export async function getServerSideProps(context) {
+
     const {id} = context.params;
     const {q} = context.query;
-
     const params = q ? q.split(':') : []
-    const baseProps = {
-        id: id,
-        userID: params[0],
-        workspaceID: params[1],
-        designID: params[3],
-        invite: params[4] || null
-    }
 
-    switch (id) {
-        case 'chart':
-            return {props: {...baseProps, insightKey: params[2]}}
-        case 'prompt':
-            return {props: {...baseProps, canvasID: params[2]}}
-        default:
-            return {props: {}}
+    return {
+        props: {
+            id: id,
+            userID: params[0],
+            workspaceID: params[1],
+            elementParams: params[2], // Element params will be separated by |
+            designID: params[3],
+            invite: params[4] || null
+        }
     }
 }
 
-const Asset = ({id, userID, workspaceID, insightKey, invite, canvasID, designID}) => {
+const Asset = ({id, userID, workspaceID, elementParams, designID, invite}) => {
 
-    let queryParam = ''
-
-    if (id === 'prompt') {
-        queryParam = `${userID}:${workspaceID}:${canvasID}:${designID}${invite ? `:${invite}` : ''}`;
-    } else {
-        queryParam = `${userID}:${workspaceID}:${insightKey}:${designID}${invite ? `:${invite}` : ''}`;
-    }
+    const queryParam = `${userID}:${workspaceID}:${elementParams}:${designID}${invite ? `:${invite}` : ''}`
 
     return (
         <div id={'scoop-element-container'} style={{height: '100vh', width: '100vw'}}>
@@ -64,8 +53,7 @@ const Asset = ({id, userID, workspaceID, insightKey, invite, canvasID, designID}
                 id={id}
                 userID={userID}
                 workspaceID={workspaceID}
-                canvasID={canvasID}
-                insightKey={insightKey}
+                elementParams={elementParams}
                 invite={invite}
                 designID={designID}
             />
@@ -77,39 +65,33 @@ const AuthenticatedContent = withAuth(({
                                            id,
                                            userID,
                                            workspaceID,
-                                           insightKey,
-                                           canvasID,
+                                           elementParams,
                                            designID,
                                            invite
                                        }) => {
 
+    const params = elementParams.split('|')
     const router = useRouter();
-    const [token, setToken] = useState(null)
-    const [workspaceMetadata, setWorkspaceMetadata] = useState(null)
-    const [server, setServer] = useState(new Server(workspaceID, userID, token))
+    const [token, setToken] = useState(null);
+    const [workspaceMetadata, setWorkspaceMetadata] = useState(null);
+    const [server, setServer] = useState(new Server(workspaceID, userID, token));
     const [serverUpdate, setServerUpdate] = useState(null);
+    const [socketConnected, setSocketConnected] = useState(false);
 
     useEffect(() => {
-        const onConnect = () => {
+        socket.onopen = (e) => {
+            setSocketConnected(true)
             console.log('socket connected')
         }
-        const onDisconnect = () => {
+        socket.onclose = (e) => {
             console.log('socket disconnected')
         }
-        const onServerUpdate = (data) => {
-            setServerUpdate(data)
-            console.log('server update', data)
+        socket.onmessage = (data) => {
+            if (data.data?.includes('action')) {
+                setServerUpdate(JSON.parse(data.data))
+            }
+            console.log('server update')
         }
-
-        socket.on('connect', onConnect);
-        socket.on('disconnect', onDisconnect);
-        socket.on('scoopServerUpdate', onServerUpdate)
-
-        return () => {
-            socket.off('connect', onConnect);
-            socket.off('disconnect', onDisconnect);
-            socket.off('scoopServerUpdate', onServerUpdate);
-        };
     }, []);
 
     useEffect(() => {
@@ -149,33 +131,43 @@ const AuthenticatedContent = withAuth(({
                 <InsightComponent
                     token={token}
                     workspaceID={workspaceID}
-                    insightKey={insightKey}
+                    insightKey={params[0]}
                     workspaceMetadata={workspaceMetadata}
                     server={server}
                     serverUpdate={serverUpdate}
                     designID={designID}
+                    userID={userID}
+                    socketConnected={socketConnected}
                 />
             )
-        case 'sheetlet':
+        case 'sheet':
             return (
-                <SheetletComponent serverUpdate={serverUpdate} />
+                <SheetletComponent
+                    token={token}
+                    userID={userID}
+                    workspaceID={workspaceID}
+                    designID={designID}
+                    socketConnected={socketConnected}
+                    serverUpdate={serverUpdate}
+                    canvasID={params[0]}
+                    worksheetID={params[1]}
+                />
             )
         case 'prompt':
             return (
                 <PromptWrapperComponent
                     token={token}
                     workspaceMetadata={workspaceMetadata}
-                    canvasID={canvasID}
+                    canvasID={params[0]}
                     workspaceID={workspaceID}
                     userID={userID}
                     serverUpdate={serverUpdate}
                     designID={designID}
+                    socketConnected={socketConnected}
                 />
             )
         case 'websocket-test':
-            return (
-                <WebSocketTest/>
-            )
+            return (<WebSocketTest/>)
         default:
             return (
                 <Box>

@@ -7,17 +7,17 @@ import { Box, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import _ from "lodash";
 import { loadFromSavedInsight, fetchInsight } from '../api/InsightAPI';
 import ChartState from "../../utils/ChartState";
-import { OBJECT_TYPES } from "../api/types";
 import CaretRight from '../../../public/icons/CaretRight.svg?url';
 import CloseIcon from '../../../public/icons/CloseIcon.svg?url';
 import CloseIconWhite from '../../../public/icons/CloseIconWhite.svg?url';
 import {useApi} from "@/pages/api/api";
 import {ScoopLoader} from "@/components/ScoopLoader/ScoopLoader";
-import {PROMPT_UPDATED} from "@/utils/socketActions";
+import {socket} from "@/socket";
 
 const InsightComponent = ({
     token,
     workspaceID,
+    userID,
     server,
     insightKey,
     workspaceMetadata,
@@ -26,11 +26,13 @@ const InsightComponent = ({
         "width": "100%",
         "height": "calc(100% - 55px)"
     },
+    socketConnected,
     serverUpdate,
     designID,
     theme
 }) => {
 
+    const itemID = `${userID}-${workspaceID}-${insightKey}`
     const { postData } = useApi(token);
     const [config, setConfig] = useState(ChartState.getDefaultConfig());
     const [chartState, setChartState] = useState(new ChartState(server, config, setConfig));
@@ -48,8 +50,19 @@ const InsightComponent = ({
     const container = typeof window !== 'undefined' ? document.getElementById('scoop-element-container') : {offsetWidth: 0, offsetHeight: 0}
 
     useEffect(() => {
-        if (serverUpdate && serverUpdate.action === PROMPT_UPDATED && serverUpdate.designID === designID) {
-            // re-fetch with prompts
+        if (socketConnected) {
+            socket.send(JSON.stringify({
+                action: 'registerItem',
+                groupID: designID,
+                itemID: itemID
+            }))
+        }
+    }, [socketConnected]);
+
+    useEffect(() => {
+        if (serverUpdate && serverUpdate.action === 'updatePrompts' && serverUpdate.prompts) {
+            hasFetched.current = false
+            updateInsight([...serverUpdate.prompts.filters])
         }
     }, [serverUpdate])
 
@@ -61,26 +74,7 @@ const InsightComponent = ({
         }
     }, [workspaceMetadata]);
 
-    useEffect(() => {
-        if (chartState) {
-            const interval = setInterval(() => {
-                chartState.getResults({...config}, null);
-            }, 10000); // 10 seconds
-
-            return () => clearInterval(interval); // Cleanup interval on component unmount
-        }
-    }, [config, chartState]);
-
-    const getInsightPrompts = () => {
-        let prompts;
-        if (isGuestMode && guestPrompts.length > 0) prompts = guestPrompts;
-        else prompts = objects.filter(obj => obj.type === OBJECT_TYPES.PROMPT);
-        return prompts.filter(prompt => prompt.promptProps?.objects.includes(insightID))
-            .map(prompt => prompt.promptProps.prompt)
-            .filter(prompt => prompt !== null);
-    };
-
-    const updateInsight = () => {
+    const updateInsight = (prompts) => {
         if (!hasFetched.current && insightKey && postData) {
             setLoading(true)
             hasFetched.current = true;
@@ -92,7 +86,7 @@ const InsightComponent = ({
                         chartState,
                         insightKey,
                         workspaceID,
-                        getInsightPrompts(),
+                        prompts,
                         workspaceMetadata,
                         () => setLoading(false)
                     );
@@ -107,9 +101,7 @@ const InsightComponent = ({
     };
 
     useEffect(() => {
-        if (chartState && postData) {
-            updateInsight();
-        }
+        if (chartState && postData) updateInsight()
     }, [chartState, postData]);
 
     const handleMenuClick = (event) => {

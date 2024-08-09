@@ -8,8 +8,6 @@ import {ScoopDatePicker} from "@/components/ScoopDatePicker/ScoopDatePicker";
 import {useApi} from "@/pages/api/api";
 import {debounce} from "lodash";
 import Image from "next/image";
-import {socket} from "@/socket";
-import {PROMPT_UPDATED} from "@/utils/socketActions";
 
 const getTheme = (workspaceMetadata, promptProps ) => {
     let th = undefined
@@ -21,7 +19,7 @@ const getTheme = (workspaceMetadata, promptProps ) => {
     return th
 }
 
-const PromptComponent = ({promptProps = {}, workspaceMetadata, token, designID}) => {
+const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptChange, id}) => {
 
     const { postData } = useApi(token);
     const [categoryValues, setCategoryValues] = useState([]);
@@ -39,11 +37,7 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, designID})
         } else {
             newPrompt.prompt.filterValue.values[0] = value
         }
-        socket.emit('scoopUserUpdate', {
-            action: PROMPT_UPDATED,
-            designID: designID,
-            prompt: newPrompt
-        })
+        onPromptChange(id, newPrompt)
     }, 1000), [promptProps]);
 
     useEffect(() => {
@@ -123,11 +117,7 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, designID})
             newPrompt.value = value.toString()
             newPrompt.prompt.filterValue.values[0] = value.toISOString().split('T')[0]
         }
-        socket.emit('scoopUserUpdate', {
-            action: PROMPT_UPDATED,
-            designID: designID,
-            prompt: newPrompt
-        })
+        onPromptChange(id, newPrompt)
     }
 
     const handleNumericChange = (value) => {
@@ -136,11 +126,7 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, designID})
         newPrompt.value = value
         newPrompt.prompt[0].filterValue.values[0] = value[0]
         newPrompt.prompt[1].filterValue.values[0] = value[1]
-        socket.emit('scoopUserUpdate', {
-            action: PROMPT_UPDATED,
-            designID: designID,
-            prompt: newPrompt
-        })
+        onPromptChange(id, newPrompt)
     }
 
     const handleSelectChange = (value) => {
@@ -260,14 +246,7 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, designID})
 
     return (
         <Box className={styles.promptContainer}>
-            <Typography
-                sx={{
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    fontFamily: 'Inter',
-                    color: theme?.colorScheme?.darkTheme ? 'white' : ''
-                }}
-            >
+            <Typography sx={{fontSize: '14px', fontWeight: 600, fontFamily: 'Inter'}}>
                 {promptProps?.label || 'Untitled prompt'}
             </Typography>
             {getPromptContent()}

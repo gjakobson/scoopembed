@@ -108,6 +108,7 @@ export function loadFromSavedInsight(
     if (!(insight.selectedDates instanceof Map))
         insight.selectedDates = new Map(Object.entries(insight.selectedDates));
     setConfig(insight);
+    console.log(insightPrompts)
     if (insight.view === 'table') {
         chartState.getResults(
             {...insight, view: 'chart'},

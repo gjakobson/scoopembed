@@ -1,45 +1,32 @@
 import dynamic from 'next/dynamic';
-
-const HotTable = dynamic(() => import('@handsontable/react').then(mod => mod.HotTable), { ssr: false });
-import React, { useRef, useState, useEffect, useMemo } from "react";
+import React, {useRef, useState, useEffect} from "react";
 import Handsontable from "handsontable";
-import isEqual from 'lodash/isEqual';
-import { textRenderer } from "handsontable/renderers/textRenderer";
-import { ServerContext } from "../api/SheetState";
-import { Server } from '../api/Server'
-
-const useDeepCompareEffect = (callback, dependencies) => {
-    const memoizedDependencies = useDeepCompareMemoize(dependencies);
-    useEffect(callback, memoizedDependencies);
-};
-
-const useDeepCompareMemoize = (value) => {
-    const ref = useRef();
-
-    if (!isEqual(value, ref.current)) {
-        ref.current = value;
-    }
-
-    return ref.current;
-};
-
+import {textRenderer} from "handsontable/renderers/textRenderer";
+import {ServerContext} from "../api/SheetState";
+import {Server} from '../api/Server'
 import 'handsontable/dist/handsontable.full.css';
+import {socket} from "@/socket";
+import {useApi} from "@/pages/api/api";
+import {ScoopLoader} from "@/components/ScoopLoader/ScoopLoader";
 
-const SheetletComponent = ({ id, 
-    sheetletId = "SheetletElement-0.35501857358264255",
-    sheetRange = {
-        "sheetType": "LiveSheet",
-        "worksheetID": "1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY",
-        "rangeName": "WeightedPipeline"
-    },
-    setWorksheetID,
-    isBlending
-}) => {
+const HotTable = dynamic(() => import('@handsontable/react').then(mod => mod.HotTable), {ssr: false});
 
+const SheetletComponent = ({
+                               canvasID,
+                               worksheetID,
+                               serverUpdate,
+                               socketConnected,
+                               designID,
+                               userID,
+                               workspaceID,
+                               token,
+                               setWorksheetID,
+                               isBlending
+                           }) => {
 
-
-    const ariaLabel = { 'aria-label': 'description' };
-
+    const container = typeof window !== 'undefined' ? document.getElementById('scoop-element-container') : {offsetWidth: 0, offsetHeight: 0}
+    const itemID = `${userID}-${workspaceID}-${canvasID}-${worksheetID}`;
+    const {postData} = useApi(token);
     const [data, setData] = useState([]);
     const [colHeaders, setColHeaders] = useState(null);
     const [colWidths, setColWidths] = useState(null);
@@ -47,26 +34,64 @@ const SheetletComponent = ({ id,
     const [hiddenRows, setHiddenRows] = useState(null);
     const [loading, setLoading] = useState(true);
     const hotTableComponent = useRef(null);
-
-    const userID = "61cb586e-307a-4dd5-99be-044c8aba5ab3"
-    const workspaceID = "W283";
-    const token = "eyJraWQiOiI3dVwvZmEwRWZmU2NzWHAyQmRNK1RmY2lENk9yR2lNdDBRaDdpNTR0cktQbz0iLCJhbGciOiJSUzI1NiJ9.eyJzdWIiOiI0NmMyZWE2OS02Y2JkLTQyYjYtYTRiNC1jOTE4NDM5NTgzNDYiLCJlbWFpbF92ZXJpZmllZCI6dHJ1ZSwiYmlydGhkYXRlIjoiMTA5NTM3OTE5OCIsImlzcyI6Imh0dHBzOlwvXC9jb2duaXRvLWlkcC51cy13ZXN0LTIuYW1hem9uYXdzLmNvbVwvdXMtd2VzdC0yXzRSeWx0cXlKNyIsInBob25lX251bWJlcl92ZXJpZmllZCI6dHJ1ZSwiY29nbml0bzp1c2VybmFtZSI6IjYxY2I1ODZlLTMwN2EtNGRkNS05OWJlLTA0NGM4YWJhNWFiMyIsIm9yaWdpbl9qdGkiOiJmYTdhODEyNi0wMjNhLTRmMDQtODFhZi03OWY4N2Q0OTg0YjkiLCJhdWQiOiI3NmF0cjYycm40aXVrOHVoajhyOGd0MzltcyIsImV2ZW50X2lkIjoiNzI4MzU4M2QtZDM3NS00ZGFiLTlmMmUtMjVhZWU1NDdhMTc1IiwidG9rZW5fdXNlIjoiaWQiLCJhdXRoX3RpbWUiOjE3MTk0MjU4MjEsInBob25lX251bWJlciI6IisxNzAyODQ1NDQ4NSIsImV4cCI6MTcxOTUxMjIyMSwiaWF0IjoxNzE5NDI1ODIxLCJqdGkiOiI4MjA4ZDI1MC04ODY3LTQ2YjgtYmIxNC1lZWI0MGU4NTI5YjEiLCJlbWFpbCI6ImdhYmVAc2Nvb3AucmVwb3J0In0.d5RAExh9YuIBewnfG5Tn_PbNYC3r0MlDBEIEu_o_ZxpQYPScxYyDfNJ5yJq-8ZsH7RUIZNujbFKVWa8ygVH0VvQgynXmbLSb-lKfvvArNykjwkS_go47h7dOrupvkdWBxXbXokzgpG2CIoQ_bfiCXMheOm-MmD2UyrzJpa0wlR8UyaZq0QgSb4vcCMajMBqUrvhKv1c6PDv8crFDASGA5vw0WR6kXPbGtRVzvQrURN1U66SzmftEJPgkWbyRjzVzDvvnA5xH5vkDANuxK55orU03mzI6Fq2v6JmQM3KEiMG1Cpim7firDxjYn__yvh8RpnQdC8y7IB_xHdhlmmu1tQ"
-
-
     const [server, setServer] = React.useState(new Server(workspaceID, userID, token));
     const [serverContext, setServerContext] = useState(new ServerContext(server));
-
     const [suppressGrid, setSuppressGrid] = useState(false);
     const [suppressHeaders, setSuppressHeaders] = useState(false);
     const [locked, setLocked] = useState(false);
+    const [sheetRange, setSheetRange] = useState({});
 
-    const memoizedSheetRange = useMemo(() => ({
-        "sheetType": "LiveSheet",
-        "worksheetID": "1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY",
-        "rangeName": "WeightedPipeline"
-    }), [sheetRange.sheetType, sheetRange.worksheetID, sheetRange.rangeName]);
+    useEffect(() => {
+        if (socketConnected) {
+            socket.send(JSON.stringify({
+                action: 'registerItem',
+                groupID: designID,
+                itemID: itemID
+            }))
+        }
+    }, [socketConnected])
 
+    useEffect(() => {
+        console.log(serverUpdate)
+    }, [serverUpdate])
 
+    useEffect(() => {
+        postData({
+            "action": "loadCanvasWithThemes",
+            "userID": userID,
+            "workspaceID": workspaceID,
+            "canvasID": canvasID,
+        }).then(r => {
+            const sheets = r.canvas.canvasObjects.filter(o => o.type === 'SheetletElement')
+            const sheetElement = sheets.filter(s => s.content.worksheetID === worksheetID)[0]
+            const range = {
+                sheetType: "LiveSheet",
+                worksheetID: worksheetID,
+            }
+            if (sheetElement.content.worksheetRange) {
+                range.rangeName = sheetElement.content.worksheetRange
+            } else {
+                range.sheetNum = sheetElement.content.worksheetNum
+                range.sheetName = sheetElement.content.worksheetName
+            }
+            setSheetRange(range)
+
+            const getSheet = async () => {
+                try {
+                    const action = {
+                        action: "getSheet",
+                        sheetRange: range,
+                        aggregation: isBlending === false && true
+                    };
+                    await serverContext.server.sheetPostData(action, getResults);
+                } catch (e) {
+                    console.log("ERROR: ", e);
+                }
+            }
+
+            if (!serverContext.serverData || !serverContext.serverData.data) getSheet()
+        })
+    }, [])
 
     class ScoopEditor extends Handsontable.editors.TextEditor {
 
@@ -147,7 +172,6 @@ const SheetletComponent = ({ id,
             }
             return reverse;
         }
-
 
         beforeOnCellMouseDown(event, coords, TD, controller) {
             let val = this.getValue();
@@ -241,7 +265,7 @@ const SheetletComponent = ({ id,
     }
 
     function afterSelection(row, column, row2, column2, preventScrolling, selectionLayerLevel) {
-        serverContext.lastSelectionData = { row: row, column: column, row2: row2, column2: column2 };
+        serverContext.lastSelectionData = {row: row, column: column, row2: row2, column2: column2};
     }
 
     function setFontStyle(s, fontIndex) {
@@ -483,9 +507,7 @@ const SheetletComponent = ({ id,
         }
     }
 
-
     function getResults(result) {
-        console.log("result in SheetletComponent: ", result)
         serverContext.serverData = result;
         let data = [];
         for (let r = 0; r < result.cells?.length; r++) {
@@ -509,7 +531,6 @@ const SheetletComponent = ({ id,
             }
             data.push(row);
         }
-
         setData(data);
         if (result.colHeaders) {
             setColHeaders(result.colHeaders);
@@ -523,7 +544,7 @@ const SheetletComponent = ({ id,
             for (var i = 0; i < result.hiddenRows.length; i++) {
                 hidden.push(result.hiddenRows[i] - firstRow);
             }
-            setHiddenRows({ rows: hidden });
+            setHiddenRows({rows: hidden});
         } else {
             setHiddenRows(null);
         }
@@ -531,54 +552,33 @@ const SheetletComponent = ({ id,
             setColWidths(result.colWidths);
         }
         setWorksheetID && setWorksheetID(result.worksheetID);
+        setLoading(false)
     }
-
-
-    useDeepCompareEffect(() => {
-        const getSheet = async () => {
-            try {
-                const action = {
-                    "action": "getSheet",
-                    "sheetRange": sheetRange,
-                    "aggregation": isBlending === false && true
-                };
-                console.log("action: ", action);
-
-                await serverContext.server.sheetPostData(action, getResults);
-            } catch (e) {
-                console.log("ERROR: ", e);
-            }
-        };
-
-        if (!serverContext.serverData || !serverContext.serverData.data) {
-            getSheet();
-        }
-    }, [serverContext, sheetRange]);
-
-
-
 
     return (
         <>
-            {typeof window !== 'undefined' && (
-                <HotTable
-                    editor={ScoopEditor}
-                    ref={hotTableComponent}
-                    data={data}
-                    rowHeaders={suppressHeaders ? false : (rowHeaders ? rowHeaders : true)}
-                    colHeaders={suppressHeaders ? false : (colHeaders ? colHeaders : true)}
-                    width={'100%'}
-                    colWidths={colWidths}
-                    height={'400px'}
-                    licenseKey="4f426-71673-ae630-24549-4580d"
-                    renderer={scoopTextRenderer}
-                    hiddenRows={hiddenRows}
-                    afterChange={afterChange}
-                    afterPaste={afterChange}
-                    afterSelection={afterSelection}
-                />
-            )}
-
+            {
+                loading ?
+                    <div style={{width: '100%', height: '100%', display: 'grid', placeContent: 'center'}}>
+                        <ScoopLoader size={container.offsetWidth * 0.1}/>
+                    </div> :
+                    <HotTable
+                        editor={ScoopEditor}
+                        ref={hotTableComponent}
+                        data={data}
+                        rowHeaders={suppressHeaders ? false : (rowHeaders ? rowHeaders : true)}
+                        colHeaders={suppressHeaders ? false : (colHeaders ? colHeaders : true)}
+                        width={'100%'}
+                        colWidths={colWidths}
+                        height={'400px'}
+                        licenseKey="4f426-71673-ae630-24549-4580d"
+                        renderer={scoopTextRenderer}
+                        hiddenRows={hiddenRows}
+                        afterChange={afterChange}
+                        afterPaste={afterChange}
+                        afterSelection={afterSelection}
+                    />
+            }
         </>
     )
 

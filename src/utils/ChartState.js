@@ -385,7 +385,9 @@ export default class ChartState {
                   this.processServerResult(result, object, loadingCallback);
               }
           },
-          this
+          this,
+          null,
+          true
         );
       }
 
