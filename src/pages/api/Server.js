@@ -12,9 +12,9 @@ export class Server {
 
         // if the length of the token is < 100, it's not a real jwt token but rather a guest token
         const API_ENDPOINT = sheetServer ?
-            "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserverdev" :
-            "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapidev"
-        const useAPIURL= (this.token?.length < 100 && !sheetServer) ? API_ENDPOINT.replace("mobileapidev","guest-mobileapidev") : API_ENDPOINT;
+            "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserver" :
+            "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapi"
+        const useAPIURL= (this.token?.length < 100 && !sheetServer) ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : API_ENDPOINT;
 
         // const url = this.token ? "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/guest-mobileapidev" : "http://localhost:8080/app/scoop";
 
