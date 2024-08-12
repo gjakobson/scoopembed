@@ -16,7 +16,7 @@ const WebSocketTest = dynamic(() => import('../components/WebSocketTest'), {ssr:
 
 // NOTES FOR TESTING:
 // prompt: https://embed.scoopanalytics.com/asset/prompt?q=61cb586e-307a-4dd5-99be-044c8aba5ab3:W300:C328:abx123:invite=Omega105-012
-// sheet: https://embed.scoopanalytics.com/asset/prompt?q=61cb586e-307a-4dd5-99be-044c8aba5ab3:W300:C328:1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY:invite=Omega105-012
+// sheet: https://embed.scoopanalytics.com/asset/sheet?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W283:C272|1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY:abc123:invite=Omega105-012
 // chart: https://embed.scoopanalytics.com/asset/chart?q=61cb586e-307a-4dd5-99be-044c8aba5ab3:W300:I2016:abc123:invite=Omega105-012
 
 export async function getServerSideProps(context) {

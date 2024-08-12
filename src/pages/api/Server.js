@@ -61,9 +61,15 @@ export class Server {
         action.workspaceID = this.workspaceID;
         action.userID = this.userID;
 
-        const url = this.token ? "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserverdev": "http://localhost:8080/app/scoop";
+        // const url = this.token ? "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserverdev": "http://localhost:8080/app/scoop";
 
-        const response = await fetch(url, {
+        const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserver" 
+    
+        const useAPIURL= (this.token?.length < 100) ? API_ENDPOINT.replace("sheetserver","guest-sheetserver") :API_ENDPOINT;
+
+
+
+        const response = await fetch(useAPIURL, {
             method: "POST",
             mode: "cors",
             cache: "no-cache",
