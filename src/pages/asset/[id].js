@@ -88,7 +88,7 @@ const AuthenticatedContent = withAuth(({
     const [serverUpdate, setServerUpdate] = useState(null);
     const [socketConnected, setSocketConnected] = useState(false);
 
-    console.log('version 0.0.2')
+    console.log('version 0.0.3')
 
     useEffect(() => {
         socket.onopen = (e) => {

@@ -45,6 +45,7 @@ const InsightComponent = ({
     const [drillingHistory, setDrillingHistory] = useState([]);
     const openMenu = Boolean(anchorEl);
     const [loading, setLoading] = useState(true);
+    const [activePrompts, setActivePrompts] = useState([]);
     const isGuestMode = false;
     const objects = [];
     const container = typeof window !== 'undefined' ? document.getElementById('scoop-element-container') : {offsetWidth: 0, offsetHeight: 0}
@@ -64,8 +65,10 @@ const InsightComponent = ({
             hasFetched.current = false
             if (serverUpdate.prompts.filters) {
                 updateInsight([...serverUpdate.prompts.filters])
+                setActivePrompts([...serverUpdate.prompts.filters])
             } else {
                 updateInsight([serverUpdate.prompts])
+                setActivePrompts([serverUpdate.prompts])
             }
         }
     }, [serverUpdate])
