@@ -33,7 +33,7 @@ const InsightComponent = ({
 }) => {
 
     const itemID = `${userID}-${workspaceID}-${insightKey}`
-    const { postData } = useApi(token);
+    const { postData } = useApi(token, userID, workspaceID);
     const [config, setConfig] = useState(ChartState.getDefaultConfig());
     const [chartState, setChartState] = useState(new ChartState(server, config, setConfig));
     const hasFetched = useRef(false);
@@ -62,7 +62,11 @@ const InsightComponent = ({
     useEffect(() => {
         if (serverUpdate && serverUpdate.action === 'updatePrompts' && serverUpdate.prompts) {
             hasFetched.current = false
-            updateInsight([...serverUpdate.prompts.filters])
+            if (serverUpdate.prompts.filters) {
+                updateInsight([...serverUpdate.prompts.filters])
+            } else {
+                updateInsight([serverUpdate.prompts])
+            }
         }
     }, [serverUpdate])
 
@@ -101,8 +105,8 @@ const InsightComponent = ({
     };
 
     useEffect(() => {
-        if (chartState && postData) updateInsight()
-    }, [chartState, postData]);
+        if (token && chartState) updateInsight()
+    }, [chartState, token]);
 
     const handleMenuClick = (event) => {
         if (typeof window !== 'undefined') {

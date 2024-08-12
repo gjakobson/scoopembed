@@ -26,7 +26,7 @@ const SheetletComponent = ({
 
     const container = typeof window !== 'undefined' ? document.getElementById('scoop-element-container') : {offsetWidth: 0, offsetHeight: 0}
     const itemID = `${userID}-${workspaceID}-${canvasID}-${worksheetID}`;
-    const {postData} = useApi(token);
+    const {postData} = useApi(token, userID, workspaceID);
     const [data, setData] = useState([]);
     const [colHeaders, setColHeaders] = useState(null);
     const [colWidths, setColWidths] = useState(null);

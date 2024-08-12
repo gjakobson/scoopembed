@@ -19,9 +19,9 @@ const getTheme = (workspaceMetadata, promptProps ) => {
     return th
 }
 
-const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptChange, id}) => {
+const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptChange, id, userID, workspaceID}) => {
 
-    const { postData } = useApi(token);
+    const { postData } = useApi(token, userID, workspaceID);
     const [categoryValues, setCategoryValues] = useState([]);
     const [categoryValuesLoading, setCategoryValuesLoading] = useState(false);
     const [singleSelectValue, setSingleSelectValue] = useState('');

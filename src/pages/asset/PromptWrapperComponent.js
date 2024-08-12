@@ -22,7 +22,7 @@ const PromptWrapperComponent = ({
         offsetHeight: 0
     }
     const itemID = `${userID}-${workspaceID}-${canvasID}`
-    const {postData} = useApi(token);
+    const {postData} = useApi(token, userID, workspaceID);
     const [prompts, setPrompts] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -51,7 +51,6 @@ const PromptWrapperComponent = ({
                 itemID: itemID,
                 prompts: packFilter(updatedPrompts)
             }))
-            console.log("Prompts: ",prompts)
             setPrompts(prompts)
             setLoading(false)
         })
@@ -81,6 +80,8 @@ const PromptWrapperComponent = ({
                 {
                     prompts.map((prompt) =>
                         <PromptComponent
+                            userID={userID}
+                            workspaceID={workspaceID}
                             id={prompt.id}
                             key={prompt.id}
                             promptProps={prompt.promptProps}

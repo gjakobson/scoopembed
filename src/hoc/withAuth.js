@@ -13,7 +13,6 @@ const withAuth = (WrappedComponent) => {
     useEffect(() => {
       if (invite) {
         const tokenValue = invite.split('=')[1];
-        console.log('Setting invite token to: ', tokenValue);
         setIsAuthenticated(true);
         setLoading(false);
         setToken(tokenValue);  // Set token value

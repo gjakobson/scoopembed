@@ -1,8 +1,6 @@
 // api.js
 
-export const useApi = (token, otherURL) => {
-    const userID = "61cb586e-307a-4dd5-99be-044c8aba5ab3"
-    const workspaceID = "W283";
+export const useApi = (token, userID, workspaceID, otherURL) => {
 
     // if the length of the token is < 100, it's not a real jwt token but rather a guest token
     const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserver"

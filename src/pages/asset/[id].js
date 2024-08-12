@@ -84,6 +84,8 @@ const AuthenticatedContent = withAuth(({
     const [serverUpdate, setServerUpdate] = useState(null);
     const [socketConnected, setSocketConnected] = useState(false);
 
+    console.log('version 0.0.1')
+
     useEffect(() => {
         socket.onopen = (e) => {
             setSocketConnected(true)
@@ -131,56 +133,64 @@ const AuthenticatedContent = withAuth(({
         }
     }, [invite, router]);
 
-    switch (id) {
-        case 'chart':
-            return (
-                <InsightComponent
-                    token={token}
-                    workspaceID={workspaceID}
-                    insightKey={params[0]}
-                    workspaceMetadata={workspaceMetadata}
-                    server={server}
-                    serverUpdate={serverUpdate}
-                    designID={designID}
-                    userID={userID}
-                    socketConnected={socketConnected}
-                />
-            )
-        case 'sheet':
-            return (
-                <SheetletComponent
-                    token={token}
-                    userID={userID}
-                    workspaceID={workspaceID}
-                    designID={designID}
-                    socketConnected={socketConnected}
-                    serverUpdate={serverUpdate}
-                    canvasID={params[0]}
-                    worksheetID={params[1]}
-                />
-            )
-        case 'prompt':
-            return (
-                <PromptWrapperComponent
-                    token={token}
-                    workspaceMetadata={workspaceMetadata}
-                    canvasID={params[0]}
-                    workspaceID={workspaceID}
-                    userID={userID}
-                    serverUpdate={serverUpdate}
-                    designID={designID}
-                    socketConnected={socketConnected}
-                />
-            )
-        case 'websocket-test':
-            return (<WebSocketTest/>)
-        default:
-            return (
-                <Box>
+    if (token) {
+        switch (id) {
+            case 'chart':
+                return (
+                    <InsightComponent
+                        token={token}
+                        workspaceID={workspaceID}
+                        insightKey={params[0]}
+                        workspaceMetadata={workspaceMetadata}
+                        server={server}
+                        serverUpdate={serverUpdate}
+                        designID={designID}
+                        userID={userID}
+                        socketConnected={socketConnected}
+                    />
+                )
+            case 'sheet':
+                return (
+                    <SheetletComponent
+                        token={token}
+                        userID={userID}
+                        workspaceID={workspaceID}
+                        designID={designID}
+                        socketConnected={socketConnected}
+                        serverUpdate={serverUpdate}
+                        canvasID={params[0]}
+                        worksheetID={params[1]}
+                    />
+                )
+            case 'prompt':
+                return (
+                    <PromptWrapperComponent
+                        token={token}
+                        workspaceMetadata={workspaceMetadata}
+                        canvasID={params[0]}
+                        workspaceID={workspaceID}
+                        userID={userID}
+                        serverUpdate={serverUpdate}
+                        designID={designID}
+                        socketConnected={socketConnected}
+                    />
+                )
+            case 'websocket-test':
+                return (<WebSocketTest/>)
+            default:
+                return (
+                    <Box>
 
-                </Box>
-            )
+                    </Box>
+                )
+        }
     }
+
+    return (
+        <Box>
+
+        </Box>
+    )
 });
 
 export default Asset;
