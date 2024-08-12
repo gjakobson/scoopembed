@@ -14,7 +14,8 @@ export class Server {
         const API_ENDPOINT = sheetServer ?
             "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserver" :
             "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapi"
-        const useAPIURL= (this.token?.length < 100 && !sheetServer) ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : API_ENDPOINT;
+        
+            const useAPIURL= (this.token?.length < 100 && !sheetServer) ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : (this.token?.length < 100 && sheetServer) ? API_ENDPOINT.replace("sheetserver","guest-sheetserver") :API_ENDPOINT;
 
         // const url = this.token ? "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/guest-mobileapidev" : "http://localhost:8080/app/scoop";
 
@@ -95,7 +96,8 @@ export class Server {
         action.userID = this.userID;
 
         const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapi"
-        const useAPIURL= this.token?.length < 100 ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : API_ENDPOINT;
+        const useAPIURL= (this.token?.length < 100 && !sheetServer) ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : (this.token?.length < 100 && sheetServer) ? API_ENDPOINT.replace("sheetserver","guest-sheetserver") :API_ENDPOINT;
+
 
         // const url = this.token ? API_URL : "http://localhost:8080/app/scoop";
 

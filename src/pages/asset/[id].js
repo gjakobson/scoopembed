@@ -13,6 +13,12 @@ const InsightComponent = dynamic(() => import('./InsightComponent'), {ssr: false
 const PromptWrapperComponent = dynamic(() => import('./PromptWrapperComponent'), {ssr: false});
 const WebSocketTest = dynamic(() => import('../components/WebSocketTest'), {ssr: false});
 
+
+// NOTES FOR TESTING:
+// prompt: https://embed.scoopanalytics.com/asset/prompt?q=61cb586e-307a-4dd5-99be-044c8aba5ab3:W300:C328:abx123:invite=Omega105-012
+// sheet: https://embed.scoopanalytics.com/asset/prompt?q=61cb586e-307a-4dd5-99be-044c8aba5ab3:W300:C328:1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY:invite=Omega105-012
+// chart: https://embed.scoopanalytics.com/asset/chart?q=61cb586e-307a-4dd5-99be-044c8aba5ab3:W300:I2016:abc123:invite=Omega105-012
+
 export async function getServerSideProps(context) {
 
     const {id} = context.params;

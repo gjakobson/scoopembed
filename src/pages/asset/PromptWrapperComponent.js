@@ -51,6 +51,7 @@ const PromptWrapperComponent = ({
                 itemID: itemID,
                 prompts: packFilter(updatedPrompts)
             }))
+            console.log("Prompts: ",prompts)
             setPrompts(prompts)
             setLoading(false)
         })

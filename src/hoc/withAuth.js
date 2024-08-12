@@ -11,9 +11,9 @@ const withAuth = (WrappedComponent) => {
     const { invite } = props; // Use invite from props
 
     useEffect(() => {
-      console.log('invite', invite);
       if (invite) {
         const tokenValue = invite.split('=')[1];
+        console.log('Setting invite token to: ', tokenValue);
         setIsAuthenticated(true);
         setLoading(false);
         setToken(tokenValue);  // Set token value
