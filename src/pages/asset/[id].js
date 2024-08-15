@@ -13,11 +13,11 @@ const InsightComponent = dynamic(() => import('./InsightComponent'), {ssr: false
 const PromptWrapperComponent = dynamic(() => import('./PromptWrapperComponent'), {ssr: false});
 const WebSocketTest = dynamic(() => import('../components/WebSocketTest'), {ssr: false});
 
-
 // NOTES FOR TESTING:
-// prompt: https://embed.scoopanalytics.com/asset/prompt?q=61cb586e-307a-4dd5-99be-044c8aba5ab3:W300:C328:abx123:invite=Omega105-012
-// sheet: https://embed.scoopanalytics.com/asset/sheet?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W283:C272|1JPK2BapLrJxeHKJcIUkHFbnZCVJJLfRGQ0Ju7TsWWDY:abc123:invite=Omega105-012
-// chart: https://embed.scoopanalytics.com/asset/chart?q=61cb586e-307a-4dd5-99be-044c8aba5ab3:W300:I2016:abc123:invite=Omega105-012
+// prompt: https://embed.scoopanalytics.com/asset/prompt?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W300:C328:DAGNq3u-Fng:invite=Omega105-012
+// sheet: https://embed.scoopanalytics.com/asset/sheet?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W300:C328|14LO_nA_gxpB04fQp2bFyPbzuSPCYgjqtZJO-g1hQL9c:DAGNq3u-Fng:invite=Omega105-012
+// chart: https://embed.scoopanalytics.com/asset/chart?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W300:I2060:DAGNq3u-Fng:invite=Omega105-012
+// worksheet chart: https://embed.scoopanalytics.com/asset/chart?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W300:I2085:DAGNq3u-Fng:invite=Omega105-012
 
 export async function getServerSideProps(context) {
 
@@ -80,7 +80,7 @@ const AuthenticatedContent = withAuth(({
                                            invite
                                        }) => {
 
-    const params = elementParams.split('|')
+    const params = elementParams.split('|');
     const router = useRouter();
     const [token, setToken] = useState(null);
     const [workspaceMetadata, setWorkspaceMetadata] = useState(null);
@@ -88,7 +88,7 @@ const AuthenticatedContent = withAuth(({
     const [serverUpdate, setServerUpdate] = useState(null);
     const [socketConnected, setSocketConnected] = useState(false);
 
-    console.log('version 0.0.3')
+    console.log('version 0.0.4')
 
     useEffect(() => {
         socket.onopen = (e) => {
@@ -104,16 +104,10 @@ const AuthenticatedContent = withAuth(({
             }
             console.log('server update')
         }
+        return () => socket.close()
     }, []);
 
     useEffect(() => {
-        const getWorkspaceMetadata = async (server) => {
-            await server.postData({
-                "action": "getWorkspaceMetadata",
-            }, (result) => {
-                setWorkspaceMetadata(result);
-            });
-        }
         if (invite) {
             const invToken = invite.split('=')[1];
             const newServer = new Server(workspaceID, userID, invToken)
@@ -135,7 +129,15 @@ const AuthenticatedContent = withAuth(({
             };
             checkAuth();
         }
-    }, [invite, router]);
+    }, []);
+
+    const getWorkspaceMetadata = async (server) => {
+        await server.postData({
+            "action": "getWorkspaceMetadata",
+        }, (result) => {
+            setWorkspaceMetadata(result);
+        });
+    }
 
     if (token) {
         switch (id) {

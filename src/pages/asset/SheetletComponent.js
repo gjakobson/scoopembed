@@ -40,16 +40,19 @@ const SheetletComponent = ({
     const [suppressHeaders, setSuppressHeaders] = useState(false);
     const [locked, setLocked] = useState(false);
     const [sheetRange, setSheetRange] = useState({});
+    const [registered, setRegistered] = useState(false);
 
     useEffect(() => {
-        if (socketConnected) {
-            socket.send(JSON.stringify({
+        if (socketConnected && !registered) {
+            const action = {
                 action: 'registerItem',
                 groupID: designID,
                 itemID: itemID
-            }))
+            }
+            setRegistered(true)
+            socket.send(JSON.stringify(action))
         }
-    }, [socketConnected])
+    }, [socketConnected, registered])
 
     useEffect(() => {
         console.log(serverUpdate)

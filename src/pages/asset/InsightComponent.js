@@ -45,23 +45,25 @@ const InsightComponent = ({
     const [drillingHistory, setDrillingHistory] = useState([]);
     const openMenu = Boolean(anchorEl);
     const [loading, setLoading] = useState(true);
+    const [registered, setRegistered] = useState(false);
     const [activePrompts, setActivePrompts] = useState([]);
-    const isGuestMode = false;
-    const objects = [];
     const container = typeof window !== 'undefined' ? document.getElementById('scoop-element-container') : {offsetWidth: 0, offsetHeight: 0}
 
     useEffect(() => {
-        if (socketConnected) {
-            socket.send(JSON.stringify({
+        if (socketConnected && !loading && !registered) {
+            const action = {
                 action: 'registerItem',
                 groupID: designID,
                 itemID: itemID
-            }))
+            }
+            if (config.worksheetID) action.worksheetID = config.worksheetID
+            socket.send(JSON.stringify(action))
+            setRegistered(true)
         }
-    }, [socketConnected]);
+    }, [socketConnected, loading, config]);
 
     useEffect(() => {
-        if (serverUpdate && serverUpdate.action === 'updatePrompts' && serverUpdate.prompts) {
+        if (serverUpdate?.action === 'updatePrompts' && serverUpdate.prompts) {
             hasFetched.current = false
             if (serverUpdate.prompts.filters) {
                 updateInsight([...serverUpdate.prompts.filters])
@@ -70,6 +72,10 @@ const InsightComponent = ({
                 updateInsight([serverUpdate.prompts])
                 setActivePrompts([serverUpdate.prompts])
             }
+        }
+        if (serverUpdate?.action === 'refresh' && config.worksheetID) {
+            hasFetched.current = false
+            updateInsight()
         }
     }, [serverUpdate])
 
