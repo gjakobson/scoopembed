@@ -1,0 +1,41 @@
+.dialogContentContainer {
+    display: flex;
+    flex-direction: column;
+    padding: 24px !important;
+    gap: 16px;
+    color: #14092A !important;
+    width: 300px;
+}
+
+.dialogContentContainer .MuiFormControl-root {
+    margin-top: 0 !important;
+}
+
+.dialogContent{
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 0 !important;
+    margin: 0 !important;
+}
+
+.dialogTitle{
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: Inter, sans-serif !important;
+    font-size: 20px !important;
+    padding: 0 !important;
+}
+
+.dialogXButton{
+    cursor: pointer;
+}
+
+.dialogXButtonWImage{
+    cursor: pointer;
+    position: absolute;
+    right: 10px;
+    top: 10px;
+}
+

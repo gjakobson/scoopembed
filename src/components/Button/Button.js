@@ -7,7 +7,7 @@ const Button = ({ onClick, text, className, disabled, children, purple, ...props
         <MuiButton
             onClick={onClick}
             disabled={disabled}
-            className={`${styles.primaryButton} ${purple ? styles.buttonPurple : ''} ${disabled && styles.buttonDisabled}`}
+            className={`${styles.primaryButton} ${purple ? styles.buttonPurple : ''} ${disabled && styles.buttonDisabled} ${className}`}
             {...props}>
             {text || children}
         </MuiButton>

@@ -6,3 +6,14 @@
     gap: 10px;
     padding: 12px;
 }
+
+.promptLabelInput {
+    width: 100%;
+    font-family: Inter, sans-serif;
+    font-size: 14px;
+}
+
+.promptLabelInput input {
+    height: 38px !important;
+    padding: 0 12px !important;
+}

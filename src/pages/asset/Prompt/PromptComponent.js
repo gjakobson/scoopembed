@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from "react";
-import {Box, Chip, MenuItem, Typography} from "@mui/material";
+import {Box, Chip, MenuItem, TextField, Typography} from "@mui/material";
 import styles from './PromptComponent.module.css';
 import Check from "../../../../public/icons/Check.svg?url";
 import Selector from "@/components/Selector/Selector";
@@ -28,6 +28,7 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
     const [multipleSelectValue, setMultipleSelectValue] = useState([]);
     const [dateValue, setDateValue] = useState(null);
     const [numericRange, setNumericRange] = useState(null);
+    const [singleValue, setSingleValue] = useState(0);
     const theme = getTheme(workspaceMetadata, promptProps);
     const selectDebounce = useCallback(debounce((value) => {
         const newPrompt = {...promptProps}
@@ -37,6 +38,12 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
         } else {
             newPrompt.prompt.filterValue.values[0] = value
         }
+        onPromptChange(id, newPrompt)
+    }, 1000), [promptProps]);
+    const singleValueDebounce = useCallback(debounce((value) => {
+        const newPrompt = {...promptProps}
+        newPrompt.value = value
+        newPrompt.prompt.filterValue.values[0] = value
         onPromptChange(id, newPrompt)
     }, 1000), [promptProps]);
 
@@ -147,6 +154,11 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
         }
     }
 
+    const handleSingleValueChange = (value) => {
+        setSingleValue(value)
+        singleValueDebounce(value)
+    }
+
     const getPromptContent = () => {
         if ((promptProps.dataSourceId || (promptProps.worksheetId && promptProps.rangeName)) && promptProps.fieldName && promptProps.type) {
             switch (promptProps.type) {
@@ -240,13 +252,22 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
                             theme={theme}
                         />
                     )
+                case 'single-value':
+                    return (
+                        <TextField
+                            className={styles.promptLabelInput}
+                            value={singleValue}
+                            InputLabelProps={{shrink: true}}
+                            onChange={(e) => handleSingleValueChange(e.target.value.replace(/\D/g,''))}
+                        />
+                    )
             }
         }
     }
 
     return (
-        <Box className={styles.promptContainer}>
-            <Typography sx={{fontSize: '14px', fontWeight: 600, fontFamily: 'Inter'}}>
+        <Box className={styles.promptContainer} sx={{backgroundColor: theme?.colorScheme?.backgroundColor || 'white'}}>
+            <Typography sx={{fontSize: '14px', fontWeight: 600, fontFamily: 'Inter', color: theme?.colorScheme?.darkTheme ? 'white' : ''}}>
                 {promptProps?.label || 'Untitled prompt'}
             </Typography>
             {getPromptContent()}

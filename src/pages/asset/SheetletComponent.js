@@ -55,8 +55,28 @@ const SheetletComponent = ({
     }, [socketConnected, registered])
 
     useEffect(() => {
-        console.log(serverUpdate)
-    }, [serverUpdate])
+        const getSheet = async () => {
+            try {
+                const action = {
+                    action: "getSheet",
+                    sheetRange: sheetRange,
+                    aggregation: isBlending === false && true
+                };
+                await serverContext.server.sheetPostData(action, getResults);
+            } catch (e) {
+                console.log("ERROR: ", e);
+            }
+        }
+        if (serverUpdate?.action === 'updatePrompts') {
+            if (serverUpdate.prompts.filters) {
+                const worksheetPrompt = serverUpdate.prompts?.filters.some(f => data.some(row => row.some(value => value === f.attributeName)))
+                //if (worksheetPrompt) getSheet()
+            } else {
+                const worksheetPrompt = data.some(row => row.some(value => value === serverUpdate.prompts.attributeName))
+                //if (worksheetPrompt) getSheet()
+            }
+        }
+    }, [serverUpdate, data, sheetRange])
 
     useEffect(() => {
         postData({

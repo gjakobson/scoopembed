@@ -1,18 +1,27 @@
-// src/pages/asset/InsightComponent.js
 import ReactECharts from "echarts-for-react";
+import styles from './Insigth.module.css';
 import { ScoopTheme } from '@/styles/Style';
 import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { Box, IconButton, Menu, MenuItem, Typography } from "@mui/material";
 import _ from "lodash";
-import { loadFromSavedInsight, fetchInsight } from '../api/InsightAPI';
-import ChartState from "../../utils/ChartState";
-import CaretRight from '../../../public/icons/CaretRight.svg?url';
-import CloseIcon from '../../../public/icons/CloseIcon.svg?url';
-import CloseIconWhite from '../../../public/icons/CloseIconWhite.svg?url';
+import {loadFromSavedInsight, fetchInsight} from '../../api/InsightAPI';
+import ChartState from "../../../utils/ChartState";
+import CaretRight from '../../../../public/icons/CaretRight.svg?url';
+import CloseIcon from '../../../../public/icons/CloseIcon.svg?url';
+import CloseIconWhite from '../../../../public/icons/CloseIconWhite.svg?url';
 import {useApi} from "@/pages/api/api";
 import {ScoopLoader} from "@/components/ScoopLoader/ScoopLoader";
 import {socket} from "@/socket";
+import {getDefaultTheme, isLightColor, SORTING} from "@/utils/utils";
+
+const getTheme = (config, chartState) => {
+    if (config && config.themeID) {
+        let theme = chartState.getTheme(config.themeID);
+        if (theme) return theme;
+    }
+    return undefined;
+}
 
 const InsightComponent = ({
     token,
@@ -21,15 +30,10 @@ const InsightComponent = ({
     server,
     insightKey,
     workspaceMetadata,
-    embeddedSizeProps = {
-        "left": 0,
-        "width": "100%",
-        "height": "calc(100% - 55px)"
-    },
     socketConnected,
     serverUpdate,
-    designID,
-    theme
+    screenshot,
+    designID
 }) => {
 
     const itemID = `${userID}-${workspaceID}-${insightKey}`
@@ -47,7 +51,35 @@ const InsightComponent = ({
     const [loading, setLoading] = useState(true);
     const [registered, setRegistered] = useState(false);
     const [activePrompts, setActivePrompts] = useState([]);
-    const container = typeof window !== 'undefined' ? document.getElementById('scoop-element-container') : {offsetWidth: 0, offsetHeight: 0}
+    const [isWorksheetChart, setIsWorksheetChart] = useState(false);
+    const container = typeof window !== 'undefined' ?
+        document.getElementById('scoop-element-container') :
+        {offsetWidth: 0, offsetHeight: 0}
+    const theme = getTheme(config, chartState)
+
+    useEffect(() => {
+        setLoading(true)
+        fetchInsight(insightKey, postData)
+            .then((result) => {
+                if (result.savedObject.worksheetID) setIsWorksheetChart(true)
+                loadFromSavedInsight(
+                    result.savedObject,
+                    setConfig,
+                    chartState,
+                    insightKey,
+                    workspaceID,
+                    null,
+                    workspaceMetadata,
+                    () => setLoading(false)
+                );
+            })
+            .catch(error => {
+                console.error("Error fetching insight:", error);
+            })
+            .finally(() => {
+                fetchingRef.current.delete(insightKey);
+            })
+    }, []);
 
     useEffect(() => {
         if (socketConnected && !loading && !registered) {
@@ -63,7 +95,8 @@ const InsightComponent = ({
     }, [socketConnected, loading, config]);
 
     useEffect(() => {
-        if (serverUpdate?.action === 'updatePrompts' && serverUpdate.prompts) {
+        console.log(isWorksheetChart)
+        if (serverUpdate?.action === 'updatePrompts' && serverUpdate.prompts && !isWorksheetChart) {
             hasFetched.current = false
             if (serverUpdate.prompts.filters) {
                 updateInsight([...serverUpdate.prompts.filters])
@@ -73,11 +106,11 @@ const InsightComponent = ({
                 setActivePrompts([serverUpdate.prompts])
             }
         }
-        if (serverUpdate?.action === 'refresh' && config.worksheetID) {
+        if (serverUpdate?.action === 'refresh' && isWorksheetChart) {
             hasFetched.current = false
             updateInsight()
         }
-    }, [serverUpdate])
+    }, [serverUpdate, isWorksheetChart])
 
     useEffect(() => {
         if (workspaceMetadata) {
@@ -90,11 +123,12 @@ const InsightComponent = ({
     const updateInsight = (prompts) => {
         if (!hasFetched.current && insightKey && postData) {
             setLoading(true)
-            hasFetched.current = true;
+            hasFetched.current = true
             fetchInsight(insightKey, postData)
                 .then((result) => {
+                    //setInsightName(result.insightName)
                     loadFromSavedInsight(
-                        result,
+                        result.savedObject,
                         setConfig,
                         chartState,
                         insightKey,
@@ -109,13 +143,9 @@ const InsightComponent = ({
                 })
                 .finally(() => {
                     fetchingRef.current.delete(insightKey);
-                });
+                })
         }
     };
-
-    useEffect(() => {
-        if (token && chartState) updateInsight()
-    }, [chartState, token]);
 
     const handleMenuClick = (event) => {
         if (typeof window !== 'undefined') {
@@ -299,13 +329,56 @@ const InsightComponent = ({
         else return i > 0 && i < drillingHistory.length - 1;
     };
 
+    const applyFontScale = (overrides, width, height) => {
+        if (overrides.title?.textStyle?.fontScaleFactor?.x && overrides.title.textStyle.fontScaleFactor?.y) {
+            overrides.title.textStyle.fontSize =
+                (overrides.title.textStyle.fontScaleFactor.x * width +
+                    overrides.title.textStyle.fontScaleFactor.y * height) / 2;
+        }
+
+        if (overrides.legend?.textStyle?.fontScaleFactor?.x && overrides.legend.textStyle.fontScaleFactor?.y) {
+            overrides.legend.textStyle.fontSize =
+                (overrides.legend.textStyle.fontScaleFactor.x * width +
+                    overrides.legend.textStyle.fontScaleFactor.y * height) / 2;
+        }
+
+        if (overrides.xAxis?.axisLabel?.fontScaleFactor?.x && overrides.xAxis.axisLabel.fontScaleFactor?.y) {
+            overrides.xAxis.axisLabel.fontSize =
+                (overrides.xAxis.axisLabel.fontScaleFactor.x * width +
+                    overrides.xAxis.axisLabel.fontScaleFactor.y * height) / 2;
+        }
+
+        if (overrides.yAxis?.axisLabel?.fontScaleFactor?.x && overrides.yAxis.axisLabel.fontScaleFactor?.y) {
+            overrides.yAxis.axisLabel.fontSize =
+                (overrides.yAxis.axisLabel.fontScaleFactor.x * width +
+                    overrides.yAxis.axisLabel.fontScaleFactor.y * height) / 2;
+        }
+
+        if (overrides.xAxis?.nameTextStyle?.fontScaleFactor?.x && overrides.xAxis.nameTextStyle.fontScaleFactor?.y) {
+            overrides.xAxis.nameTextStyle.fontSize =
+                (overrides.xAxis.nameTextStyle.fontScaleFactor.x * width +
+                    overrides.xAxis.nameTextStyle.fontScaleFactor.y * height) / 2;
+        }
+
+        if (overrides.yAxis?.nameTextStyle?.fontScaleFactor?.x && overrides.yAxis.nameTextStyle.fontScaleFactor?.y) {
+            overrides.yAxis.nameTextStyle.fontSize =
+                (overrides.yAxis.nameTextStyle.fontScaleFactor.x * width +
+                    overrides.yAxis.nameTextStyle.fontScaleFactor.y * height) / 2;
+        }
+    }
+
     const getOptionWithOverrides = () => {
-        let option = chartState.getOption()
-        if (theme) option = chartState.getOption(theme.themeID)
-        // here treat chart specific configs before doing the merge
+        let option = _.cloneDeep(chartState.getOption())
+        if (theme) option = _.cloneDeep(chartState.getOption(theme.themeID))
         let overrides = _.cloneDeep(config.styleOverrides)
+        if (theme && theme.chartPreferences) {
+            let preferences = typeof theme.chartPreferences === 'string' ? JSON.parse(theme.chartPreferences) : theme.chartPreferences
+            overrides = _.merge(_.cloneDeep(preferences), _.cloneDeep(overrides))
+        } else {
+            option = _.merge(_.cloneDeep(JSON.parse(getDefaultTheme())), option)
+        }
         // remove axis for pie and donut
-        if (config.seriesType === 'pie' || config.seriesType === 'donut') {
+        if (config.seriesType === 'pie' || config.seriesType === 'donut' || config.seriesType === 'gauge' || config.seriesType === 'radialBar') {
             overrides.xAxis.show = false
             overrides.yAxis.show = false
             overrides.legend.icon = 'none'
@@ -313,33 +386,31 @@ const InsightComponent = ({
         // apply font scale
         const height = container.offsetHeight
         const width = container.offsetWidth
-        if (height > width) {
-            overrides.title.textStyle.fontSize = overrides.title.textStyle.fontScaleFactor.x * width
-            overrides.legend.textStyle.fontSize = overrides.legend.textStyle.fontScaleFactor.x * width
-            overrides.xAxis.axisLabel.fontSize = overrides.xAxis.axisLabel.fontScaleFactor.x * width
-            overrides.yAxis.axisLabel.fontSize = overrides.yAxis.axisLabel.fontScaleFactor.x * width
-            overrides.xAxis.nameTextStyle.fontSize = overrides.xAxis.nameTextStyle.fontScaleFactor.x * width
-            overrides.yAxis.nameTextStyle.fontSize = overrides.yAxis.nameTextStyle.fontScaleFactor.x * width
-        } else {
-            overrides.title.textStyle.fontSize = overrides.title.textStyle.fontScaleFactor.y * height
-            overrides.legend.textStyle.fontSize = overrides.legend.textStyle.fontScaleFactor.y * height
-            overrides.xAxis.axisLabel.fontSize = overrides.xAxis.axisLabel.fontScaleFactor.y * height
-            overrides.yAxis.axisLabel.fontSize = overrides.yAxis.axisLabel.fontScaleFactor.y * height
-            overrides.xAxis.nameTextStyle.fontSize = overrides.xAxis.nameTextStyle.fontScaleFactor.y * height
-            overrides.yAxis.nameTextStyle.fontSize = overrides.yAxis.nameTextStyle.fontScaleFactor.y * height
+        applyFontScale(overrides, width, height);
+        //check x axis.show is undefined
+        if (overrides.xAxis.show === undefined) {
+            overrides.xAxis.show = true
+        }
+        //check y axis.show is undefined
+        if (overrides.yAxis.show === undefined) {
+            overrides.yAxis.show = true
         }
         // distribute axis configs
-        if (Array.isArray(option.yAxis) && overrides.yAxis) {
+        if ((Array.isArray(option.yAxis) && overrides.yAxis)) {
             option.yAxis.forEach((axisObject, i) => {
                 option.yAxis[i] = { ...axisObject, ...overrides.yAxis }
             })
             overrides = _.omit(overrides, ['yAxis'])
+        } else {
+            if (config.seriesType === 'pictorialBar') option.yAxis = { ...option.yAxis, ...overrides.yAxis }
         }
         if (Array.isArray(option.xAxis) && overrides.xAxis) {
             option.xAxis.forEach((axisObject, i) => {
                 option.xAxis[i] = { ...axisObject, ...overrides.xAxis }
             })
             overrides = _.omit(overrides, ['xAxis'])
+        } else {
+            if (config.seriesType === 'pictorialBar') option.xAxis = { ...option.xAxis, ...overrides.xAxis }
         }
         // apply bar/waterfall configs
         if (config.seriesType === 'waterfall') {
@@ -373,17 +444,123 @@ const InsightComponent = ({
                 option.series[i] = { ...s, ...overrides.line }
             })
         }
+        if (config.seriesType === 'radialBar') {
+            overrides.radialBar = _.merge(JSON.parse(getDefaultTheme()).radialBar, overrides.radialBar)
+            option = {
+                ...option,
+                angleAxis: {
+                    ...overrides.radialBar.angleAxis,
+                    data: { ...chartState?.categoryAxisValues }
+                },
+                polar: overrides.radialBar.polar,
+                radiusAxis: overrides.radialBar.radiusAxis
+            }
+            const showAsStacked = overrides.radialBar.stack
+            option.series.forEach((s, i) => {
+                if (showAsStacked) option.series[i].stack = 'total'
+                option.series[i].coordinateSystem = 'polar'
+                option.series[i].type = 'bar'
+                option.series[i].label = {
+                    show: true,
+                    position: 'middle',
+                    formatter: '{b}: {c}',
+                    fontSize: 6
+                }
+                option.series[i] = {
+                    ...s,
+                    emphasis: overrides.radialBar.emphasis,
+                    itemStyle: overrides.radialBar.itemStyle,
+                    barWidth: overrides.radialBar.barWidth,
+                }
+            })
+        }
+        // apply pictorial configs
+        if (config.seriesType === 'pictorialBar') {
+            const xAxisCopy = _.cloneDeep(option.xAxis);
+            const yAxisCopy = _.cloneDeep(option.yAxis);
+
+            if (overrides.pictorialBar.showAsBar) {
+                option.xAxis = Array.isArray(yAxisCopy) ? yAxisCopy : { ...yAxisCopy };
+                option.yAxis = Array.isArray(xAxisCopy) ? xAxisCopy : { ...xAxisCopy };
+
+                option.series.forEach(seriesItem => {
+                    if (seriesItem.yAxisIndex) {
+                        seriesItem.xAxisIndex = seriesItem.yAxisIndex;
+                        delete seriesItem.yAxisIndex;
+                    }
+                });
+            } else {
+                option.xAxis = Array.isArray(xAxisCopy) ? xAxisCopy : { ...xAxisCopy };
+                option.yAxis = Array.isArray(yAxisCopy) ? yAxisCopy : { ...yAxisCopy };
+
+                option.series.forEach(seriesItem => {
+                    if (seriesItem.xAxisIndex) {
+                        seriesItem.yAxisIndex = seriesItem.xAxisIndex;
+                        delete seriesItem.xAxisIndex;
+                    }
+                });
+                option.yAxis.forEach((axisObject, i) => {
+                    option.yAxis[i] = { ...axisObject, ...overrides.pictorialBar.xAxis }
+                })
+            }
+            option.series.forEach((series, seriesIndex) => {
+                if (!overrides.pictorialBar.data[seriesIndex]) {
+                    overrides.pictorialBar.data[seriesIndex] = [];
+                }
+
+                series.barGap = overrides.pictorialBar.barGap;
+                series.barCategoryGap = overrides.pictorialBar.barCategoryGap;
+
+                series.data.forEach((d, i) => {
+                    if (typeof d === 'number') {
+                        series.data[i] = Object.assign({ value: d }, overrides.pictorialBar.data[seriesIndex][i]);
+                    } else {
+                        series.data[i] = Object.assign({}, d, overrides.pictorialBar.data[seriesIndex][i]);
+                    }
+                });
+            });
+        }
         // apply pie/donut configs
         if (config.seriesType === 'donut') {
+            overrides.donut = _.merge(JSON.parse(getDefaultTheme()).donut, overrides.donut)
             option.series.forEach((s, i) => {
                 option.series[i] = { ...s, ...overrides.donut }
             })
         } else {
+            overrides.pie = _.merge(JSON.parse(getDefaultTheme()).pie, overrides.pie)
             if (option.series.some(s => s.type === 'pie')) {
                 option.series.forEach((s, i) => {
                     option.series[i] = { ...s, ...overrides.pie }
                 })
             }
+        }
+        if (config.seriesType === 'gauge') {
+            overrides.gauge = _.merge(JSON.parse(getDefaultTheme()).gauge, overrides.gauge)
+            overrides.tooltip.show = false
+            overrides.legend.show = false
+            option.series.forEach((s, i) => {
+                s.type = 'gauge'
+                if (overrides.gauge?.data && overrides.gauge.data[0]?.value && isNumber(overrides.gauge.data[0])) {
+                    option.series[i].data = overrides.gauge?.data
+                } else {
+                    const name = chartProperties?.categoryAxisValues[0] || ''
+                    let value = ((chartProperties?.series[0]?.data[0]?.value || chartProperties?.series[0]?.data[0]) * 100 / chartProperties?.series[0]?.data.reduce((a, b) => a + (b.value || b), 0)).toFixed(3);
+                    option.series[i].data = [{ value, name }]
+                }
+                option.series[i] = { ...s, ...overrides.gauge, data: option.series[i].data }
+            })
+        }
+
+        if (config.seriesType === 'column' && chartState.categoryLegendData?.length > 1 && !config.stacked) {
+            let divisor = 1;
+            if (chartState.categoryAxisValues) divisor = chartState.categoryAxisValues?.length - 1;
+            if (chartState.categoryLegendData) divisor = divisor + chartState.categoryLegendData?.length - 1;
+            option.series.forEach((s, i) => {
+                let barWidth = (overrides.bar.barWidth?.split('%')[0] || BAR_DEFAULT_VALUES.barWidth) / divisor
+                if (barWidth) {
+                    option.series[i] = {...s, ...overrides.bar, barWidth: `${barWidth}%`}
+                }
+            })
         }
         // apply max legends
         const max = overrides.legend.maxLegends || 10
@@ -394,29 +571,83 @@ const InsightComponent = ({
             //console.log("data undefined, e=", e)
         }
         // omit props we dont wanna merge
-        overrides = _.omit(overrides, ['waterfall'])
-        overrides = _.omit(overrides, ['bar'])
-        overrides = _.omit(overrides, ['line'])
-        overrides = _.omit(overrides, ['pie'])
-        overrides = _.omit(overrides, ['donut'])
+        ['waterfall', 'bar', 'line', 'pie', 'donut', 'pictorialBar', 'gauge', 'radialBar', 'table'].forEach(key => {
+            overrides = _.omit(overrides, [key]);
+        });
         option = _.merge(option, overrides)
+        // apply sorting
+        if (config.categoryAxis !== 'Time' && option.series.length === 1 && config.sorting !== SORTING.NAT) {
+            let axis = 'xAxis'
+            if (config.seriesType === 'bar') axis = 'yAxis'
+            let tempData = []
+            if (config.seriesType === 'pictorialBar') {
+                tempData = option[axis].data.map((cat, i)=> ({cat: cat, val: option.series[0].data[i].value}))
+            } else {
+                tempData = option[axis].data.map((cat, i)=> ({cat: cat, val: option.series[0].data[i]}))
+            }
+            if (config.sorting === SORTING.ASC) tempData.sort((a, b) => a.val - b.val)
+            if (config.sorting === SORTING.DESC) tempData.sort((a, b) => b.val - a.val)
+            option[axis].data = tempData.map(d => d.cat)
+            if (config.seriesType === 'pictorialBar') {
+                option.series[0].data = tempData.map((d, i) => (
+                    {value: d.val, name: option[axis].data[i]}
+                ))
+            } else {
+                option.series[0].data = tempData.map(d => d.val)
+            }
+        }
         return option
-    };
+    }
+
+    const getScreenshotBgColor = () => {
+        if (screenshot) {
+            if (theme?.colorScheme?.backgroundColor === '#00000000') {
+                if (theme.colorScheme.darkTheme) return 'black'
+                else return 'white'
+            } else if (config.styleOverrides.backgroundColor === '#00000000') {
+                let color = '#FFFFFF'
+                const textColor = config.styleOverrides.xAxis?.axisLabel?.color
+                if (textColor) color = textColor.length > 7 ? textColor.slice(-2) : textColor
+                if (isLightColor(color)) return 'black'
+                else return 'white'
+            } else {
+                return 'white'
+            }
+        }
+        return 'white'
+    }
+
+    const getBreadcrumbFontColor = () => {
+        if (theme) {
+            return theme.colorScheme.darkTheme ? 'white' : 'black'
+        } else if (config.styleOverrides.xAxis?.axisLabel?.color) {
+            return config.styleOverrides.xAxis.axisLabel.color
+        } else {
+            return 'black'
+        }
+    }
 
     return (
         <>
             {
-                embeddedSizeProps && drillingHistory.length > 0 &&
-                <Box className={'drilling-breadcrumbs-container'}>
+                drillingHistory.length > 0 &&
+                <Box
+                    className={styles.drillingBreadcrumbsContainer}
+                    sx={{
+                        backgroundColor: theme?.colorScheme?.backgroundColor ||
+                            config.styleOverrides.backgroundColor ||
+                            'white'
+                    }}
+                >
                     {
                         drillingHistory.map((step, i) => (
                             <Box
                                 key={i + step.attribute}
-                                className={'drill-step'}
-                                sx={{color: theme?.colorScheme?.darkTheme ? 'white' : 'black'}}
+                                className={styles.drillStep}
+                                sx={{color: getBreadcrumbFontColor()}}
                             >
                                 <Typography
-                                    className={`inter ${isStepClickable(i) ? 'clickable-step' : ''}`}
+                                    className={`${isStepClickable(i) ? styles.clickableStep : ''}`}
                                     mr={'5px'}
                                     fontSize={'12px'}
                                     onClick={() => isStepClickable(i) ? navigateToStep(step, i) : null}
@@ -431,7 +662,7 @@ const InsightComponent = ({
                                     i + 1 === drillingHistory.length &&
                                     <IconButton sx={{padding: '4px'}} onClick={() => handleDeleteDrillingStep(step, i)}>
                                         <Image
-                                            src={theme?.colorScheme?.darkTheme ? CloseIconWhite : CloseIcon}
+                                            src={isLightColor(getBreadcrumbFontColor()) ? CloseIconWhite : CloseIcon}
                                             height={12}
                                             alt={'delete'}
                                         />
@@ -450,23 +681,26 @@ const InsightComponent = ({
                     }
                 </Box>
             }
-            {
-                loading ?
-                    <div style={{width: '100%', height: '100%', display: 'grid', placeContent: 'center'}}>
-                        <ScoopLoader size={container.offsetWidth * 0.1} />
-                    </div> :
-                    (validChart() &&
-                    <ReactECharts
-                        style={{height: '100%', width: '100%'}}
-                        option={getOptionWithOverrides()}
-                        notMerge={true}
-                        lazyUpdate={true}
-                        theme={ScoopTheme}
-                        onEvents={onEvents}
-                    />)
-            }
+            <Box sx={{width: '100%', height: '100%', backgroundColor: getScreenshotBgColor()}}>
+                {
+                    loading ?
+                        <div style={{width: '100%', height: '100%', display: 'grid', placeContent: 'center'}}>
+                            <ScoopLoader size={container.offsetWidth * 0.1} />
+                        </div> : (
+                            validChart() &&
+                            <ReactECharts
+                                style={{height: '100%', width: '100%'}}
+                                option={getOptionWithOverrides()}
+                                notMerge={true}
+                                lazyUpdate={true}
+                                theme={ScoopTheme}
+                                onEvents={onEvents}
+                            />
+                        )
+                }
+            </Box>
             <Menu
-                id="basic-menu"
+                id={'basic-menu'}
                 anchorEl={anchorEl}
                 container={typeof window !== 'undefined' ? document.getElementById('slide-container') : null}
                 open={openMenu}

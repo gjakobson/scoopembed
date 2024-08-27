@@ -41,6 +41,7 @@ export function loadFromSavedInsight(
     workspaceMetadata,
     callBack
 ) {
+
     if (!insight) {
         chartState.clear();
         return;
@@ -128,7 +129,7 @@ export const fetchInsight = async (insightKey, postData) => {
     };
     try {
         const result = await postData(action);
-        if (result) return JSON.parse(result.savedObject); // Return the parsed insight object
+        if (result) return {savedObject: JSON.parse(result.savedObject), insightName: result.insightName}; // Return the parsed insight object
     } catch (error) {
         throw error; // Rethrow the error for handling in the component
     }

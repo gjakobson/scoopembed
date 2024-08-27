@@ -9,15 +9,15 @@ import {Box} from "@mui/material";
 import {socket} from "@/socket";
 
 const SheetletComponent = dynamic(() => import('./SheetletComponent'), {ssr: false});
-const InsightComponent = dynamic(() => import('./InsightComponent'), {ssr: false});
-const PromptWrapperComponent = dynamic(() => import('./PromptWrapperComponent'), {ssr: false});
-const WebSocketTest = dynamic(() => import('../components/WebSocketTest'), {ssr: false});
+const InsightComponent = dynamic(() => import('./Insight/InsightComponent'), {ssr: false});
+const PromptWrapperComponent = dynamic(() => import('./Prompt/PromptWrapperComponent'), {ssr: false});
 
 // NOTES FOR TESTING:
-// prompt: https://embed.scoopanalytics.com/asset/prompt?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W300:C328:DAGNq3u-Fng:invite=Omega105-012
-// sheet: https://embed.scoopanalytics.com/asset/sheet?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W300:C328|14LO_nA_gxpB04fQp2bFyPbzuSPCYgjqtZJO-g1hQL9c:DAGNq3u-Fng:invite=Omega105-012
-// chart: https://embed.scoopanalytics.com/asset/chart?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W300:I2060:DAGNq3u-Fng:invite=Omega105-012
-// worksheet chart: https://embed.scoopanalytics.com/asset/chart?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W300:I2085:DAGNq3u-Fng:invite=Omega105-012
+// prompt: https://embed.scoopanalytics.com/asset/prompt?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W475:C416:DAGNq3u-Fng:screenshot=true:invite=Omega105-012
+// sheet: https://embed.scoopanalytics.com/asset/sheet?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W475:C379|1i0FPWSdz5vtLAg0LNPBOBtBnauItseu4hhxXvn5M7qQ:DAGNq3u-Fng:screenshot=true:invite=Omega105-012
+// chart: https://embed.scoopanalytics.com/asset/chart?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W475:I2301:DAGNq3u-Fng:screenshot=true:invite=Omega105-012
+// chart: https://embed.scoopanalytics.com/asset/chart?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W475:I2302:DAGNq3u-Fng:screenshot=true:invite=Omega105-012
+// worksheet chart: https://embed.scoopanalytics.com/asset/chart?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W475:I2193:DAGNq3u-Fng:screenshot=true:invite=Omega105-012
 
 export async function getServerSideProps(context) {
 
@@ -32,14 +32,15 @@ export async function getServerSideProps(context) {
             workspaceID: params[1],
             elementParams: params[2], // Element params will be separated by |
             designID: params[3],
-            invite: params[4] || null
+            screenshot: params[4],
+            invite: params[5] || null
         }
     }
 }
 
-const Asset = ({id, userID, workspaceID, elementParams, designID, invite}) => {
+const Asset = ({id, userID, workspaceID, elementParams, designID, invite, screenshot}) => {
 
-    const queryParam = `${userID}:${workspaceID}:${elementParams}:${designID}${invite ? `:${invite}` : ''}`
+    const queryParam = `${userID}:${workspaceID}:${elementParams}:${designID}:${screenshot}${invite ? `:${invite}` : ''}`
 
     return (
         <div id={'scoop-element-container'} style={{height: '100vh', width: '100vw'}}>
@@ -64,8 +65,9 @@ const Asset = ({id, userID, workspaceID, elementParams, designID, invite}) => {
                 userID={userID}
                 workspaceID={workspaceID}
                 elementParams={elementParams}
-                invite={invite}
                 designID={designID}
+                screenshot={screenshot.split('=')[1] === 'true'}
+                invite={invite}
             />
         </div>
     )
@@ -77,6 +79,7 @@ const AuthenticatedContent = withAuth(({
                                            workspaceID,
                                            elementParams,
                                            designID,
+                                           screenshot,
                                            invite
                                        }) => {
 
@@ -88,7 +91,7 @@ const AuthenticatedContent = withAuth(({
     const [serverUpdate, setServerUpdate] = useState(null);
     const [socketConnected, setSocketConnected] = useState(false);
 
-    console.log('version 0.0.4')
+    console.log('version 0.0.5')
 
     useEffect(() => {
         socket.onopen = (e) => {
@@ -153,6 +156,7 @@ const AuthenticatedContent = withAuth(({
                         designID={designID}
                         userID={userID}
                         socketConnected={socketConnected}
+                        screenshot={screenshot}
                     />
                 )
             case 'sheet':
@@ -181,22 +185,11 @@ const AuthenticatedContent = withAuth(({
                         socketConnected={socketConnected}
                     />
                 )
-            case 'websocket-test':
-                return (<WebSocketTest/>)
-            default:
-                return (
-                    <Box>
-
-                    </Box>
-                )
+            default: return <Box>No asset specified</Box>
         }
     }
 
-    return (
-        <Box>
-
-        </Box>
-    )
+    return (<Box>Unauthorized</Box>)
 });
 
 export default Asset;
