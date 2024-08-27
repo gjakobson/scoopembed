@@ -95,7 +95,6 @@ const InsightComponent = ({
     }, [socketConnected, loading, config]);
 
     useEffect(() => {
-        console.log(isWorksheetChart)
         if (serverUpdate?.action === 'updatePrompts' && serverUpdate.prompts && !isWorksheetChart) {
             hasFetched.current = false
             if (serverUpdate.prompts.filters) {
@@ -681,7 +680,7 @@ const InsightComponent = ({
                     }
                 </Box>
             }
-            <Box sx={{width: '100%', height: '100%', backgroundColor: getScreenshotBgColor()}}>
+            <Box sx={{width: '100%', height: '100%', backgroundColor: getScreenshotBgColor(), padding: screenshot ? '20px' : 0}}>
                 {
                     loading ?
                         <div style={{width: '100%', height: '100%', display: 'grid', placeContent: 'center'}}>
