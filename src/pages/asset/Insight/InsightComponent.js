@@ -614,7 +614,7 @@ const InsightComponent = ({
                 return 'white'
             }
         }
-        return ''
+        return 'transparent'
     }
 
     const getBreadcrumbFontColor = () => {
