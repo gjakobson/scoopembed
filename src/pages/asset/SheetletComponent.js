@@ -5,7 +5,6 @@ import {textRenderer} from "handsontable/renderers/textRenderer";
 import {ServerContext} from "../api/SheetState";
 import {Server} from '../api/Server'
 import 'handsontable/dist/handsontable.full.css';
-import {socket} from "@/socket";
 import {useApi} from "@/pages/api/api";
 import {ScoopLoader} from "@/components/ScoopLoader/ScoopLoader";
 
@@ -16,6 +15,7 @@ const SheetletComponent = ({
                                worksheetID,
                                serverUpdate,
                                socketConnected,
+                               sendMessage,
                                designID,
                                userID,
                                workspaceID,
@@ -50,33 +50,33 @@ const SheetletComponent = ({
                 itemID: itemID
             }
             setRegistered(true)
-            socket.send(JSON.stringify(action))
+            sendMessage(JSON.stringify(action))
         }
     }, [socketConnected, registered])
 
-    useEffect(() => {
-        const getSheet = async () => {
-            try {
-                const action = {
-                    action: "getSheet",
-                    sheetRange: sheetRange,
-                    aggregation: isBlending === false && true
-                };
-                await serverContext.server.sheetPostData(action, getResults);
-            } catch (e) {
-                console.log("ERROR: ", e);
-            }
-        }
-        if (serverUpdate?.action === 'updatePrompts') {
-            if (serverUpdate.prompts.filters) {
-                const worksheetPrompt = serverUpdate.prompts?.filters.some(f => data.some(row => row.some(value => value === f.attributeName)))
-                //if (worksheetPrompt) getSheet()
-            } else {
-                const worksheetPrompt = data.some(row => row.some(value => value === serverUpdate.prompts.attributeName))
-                //if (worksheetPrompt) getSheet()
-            }
-        }
-    }, [serverUpdate, data, sheetRange])
+    // useEffect(() => {
+    //     const getSheet = async () => {
+    //         try {
+    //             const action = {
+    //                 action: "getSheet",
+    //                 sheetRange: sheetRange,
+    //                 aggregation: isBlending === false && true
+    //             };
+    //             await serverContext.server.sheetPostData(action, getResults);
+    //         } catch (e) {
+    //             console.log("ERROR: ", e);
+    //         }
+    //     }
+    //     if (serverUpdate?.action === 'updatePrompts') {
+    //         if (serverUpdate.prompts.filters) {
+    //             const worksheetPrompt = serverUpdate.prompts?.filters.some(f => data.some(row => row.some(value => value === f.attributeName)))
+    //             //if (worksheetPrompt) getSheet()
+    //         } else {
+    //             const worksheetPrompt = data.some(row => row.some(value => value === serverUpdate.prompts.attributeName))
+    //             //if (worksheetPrompt) getSheet()
+    //         }
+    //     }
+    // }, [serverUpdate, data, sheetRange])
 
     useEffect(() => {
         postData({

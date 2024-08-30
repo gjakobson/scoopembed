@@ -17,3 +17,30 @@
     height: 38px !important;
     padding: 0 12px !important;
 }
+
+.selectorOptionsContainer {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    overflow: auto;
+    max-height: 150px;
+}
+
+.selectorButtonContainer {
+    position: absolute;
+    background-color: white;
+    right: 10px;
+    top: 10px;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    gap: 8px;
+    border-radius: 6px;
+}
+
+.selectorButton {
+    min-height: unset !important;
+    height: 30px !important;
+    min-width: unset !important;
+    width: 80px !important;
+}

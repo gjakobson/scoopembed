@@ -6,7 +6,7 @@ import {Auth} from "aws-amplify";
 import {useRouter} from "next/router";
 import {Server} from "@/pages/api/Server";
 import {Box} from "@mui/material";
-import {socket} from "@/socket";
+import useWebSocket from "react-use-websocket";
 
 const SheetletComponent = dynamic(() => import('./SheetletComponent'), {ssr: false});
 const InsightComponent = dynamic(() => import('./Insight/InsightComponent'), {ssr: false});
@@ -88,27 +88,9 @@ const AuthenticatedContent = withAuth(({
     const [token, setToken] = useState(null);
     const [workspaceMetadata, setWorkspaceMetadata] = useState(null);
     const [server, setServer] = useState(new Server(workspaceID, userID, token));
-    const [serverUpdate, setServerUpdate] = useState(null);
-    const [socketConnected, setSocketConnected] = useState(false);
+    const {sendMessage, lastMessage, readyState} = useWebSocket('wss://yf8adv3utf.execute-api.us-west-2.amazonaws.com/production/', {shouldReconnect: () => true})
 
-    console.log('version 0.0.5')
-
-    useEffect(() => {
-        socket.onopen = (e) => {
-            setSocketConnected(true)
-            console.log('socket connected')
-        }
-        socket.onclose = (e) => {
-            console.log('socket disconnected')
-        }
-        socket.onmessage = (data) => {
-            if (data.data?.includes('action')) {
-                setServerUpdate(JSON.parse(data.data))
-            }
-            console.log('server update')
-        }
-        return () => socket.close()
-    }, []);
+    console.log('version 0.0.6')
 
     useEffect(() => {
         if (invite) {
@@ -142,6 +124,8 @@ const AuthenticatedContent = withAuth(({
         });
     }
 
+    const serverUpdate = lastMessage?.data ? JSON.parse(lastMessage.data) : null
+
     if (token) {
         switch (id) {
             case 'chart':
@@ -155,8 +139,9 @@ const AuthenticatedContent = withAuth(({
                         serverUpdate={serverUpdate}
                         designID={designID}
                         userID={userID}
-                        socketConnected={socketConnected}
+                        socketConnected={readyState === 1}
                         screenshot={screenshot}
+                        sendMessage={sendMessage}
                     />
                 )
             case 'sheet':
@@ -166,10 +151,11 @@ const AuthenticatedContent = withAuth(({
                         userID={userID}
                         workspaceID={workspaceID}
                         designID={designID}
-                        socketConnected={socketConnected}
+                        socketConnected={readyState === 1}
                         serverUpdate={serverUpdate}
                         canvasID={params[0]}
                         worksheetID={params[1]}
+                        sendMessage={sendMessage}
                     />
                 )
             case 'prompt':
@@ -182,7 +168,8 @@ const AuthenticatedContent = withAuth(({
                         userID={userID}
                         serverUpdate={serverUpdate}
                         designID={designID}
-                        socketConnected={socketConnected}
+                        socketConnected={readyState === 1}
+                        sendMessage={sendMessage}
                     />
                 )
             default: return <Box>No asset specified</Box>

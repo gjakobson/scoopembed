@@ -8,6 +8,7 @@ import {ScoopDatePicker} from "@/components/ScoopDatePicker/ScoopDatePicker";
 import {useApi} from "@/pages/api/api";
 import {debounce} from "lodash";
 import Image from "next/image";
+import Button from "@/components/Button/Button";
 
 const getTheme = (workspaceMetadata, promptProps ) => {
     let th = undefined
@@ -28,6 +29,8 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
     const [multipleSelectValue, setMultipleSelectValue] = useState([]);
     const [dateValue, setDateValue] = useState(null);
     const [numericRange, setNumericRange] = useState(null);
+    const [multiOpen, setMultiOpen] = useState(false);
+    const [singleOpen, setSingleOpen] = useState(false);
     const [singleValue, setSingleValue] = useState(0);
     const theme = getTheme(workspaceMetadata, promptProps);
     const selectDebounce = useCallback(debounce((value) => {
@@ -159,6 +162,8 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
         singleValueDebounce(value)
     }
 
+    console.log(multiOpen)
+
     const getPromptContent = () => {
         if ((promptProps.dataSourceId || (promptProps.worksheetId && promptProps.rangeName)) && promptProps.fieldName && promptProps.type) {
             switch (promptProps.type) {
@@ -168,6 +173,9 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
                             {
                                 categoryValues.length > 0 &&
                                 <Selector
+                                    open={singleOpen}
+                                    onClose={() => setSingleOpen(false)}
+                                    onOpen={() => setSingleOpen(true)}
                                     value={singleSelectValue || ''}
                                     renderValue={(v) => v}
                                     sx={{
@@ -176,7 +184,7 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
                                         backgroundColor: theme?.colorScheme?.darkTheme ? 'white' : '',
                                         fontSize: '14px'
                                     }}
-                                    MenuProps={{sx: {maxHeight: 350}, container: document.getElementById('slide-container')}}
+                                    MenuProps={{sx: {maxHeight: 350}}}
                                 >
                                     {
                                         ['All', ...categoryValues].map(value =>
@@ -193,6 +201,9 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
                                             </MenuItem>
                                         )
                                     }
+                                    <Box className={styles.selectorButtonContainer}>
+                                        <Button grey className={styles.selectorButton} onClick={() => setSingleOpen(false)}>Close</Button>
+                                    </Box>
                                 </Selector>
                             }
                         </Box>
@@ -201,6 +212,9 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
                     return (
                         <Box sx={{width: '100%'}}>
                             <Selector
+                                open={multiOpen}
+                                onClose={() => setMultiOpen(false)}
+                                onOpen={() => setMultiOpen(true)}
                                 value={multipleSelectValue || ''}
                                 onChange={handleMultipleSelect}
                                 renderValue={renderMultipleValues}
@@ -216,8 +230,7 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
                                 MenuProps={{sx: {maxHeight: 350}, container: document.getElementById('slide-container')}}
                                 multiple
                             >
-                                {
-                                    [multipleSelectValue.length === categoryValues.length ? 'Clear all' : 'Select all', ...categoryValues].map(value => {
+                                {[multipleSelectValue.length === categoryValues.length ? 'Clear all' : 'Select all', ...categoryValues].map(value => {
                                         const selected = multipleSelectValue.includes(value)
                                         return (
                                             <MenuItem key={value} value={value} sx={{justifyContent: 'space-between'}}>
@@ -227,8 +240,10 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
                                                 {selected && <Image src={Check} height={18} width={18} alt={'check'} />}
                                             </MenuItem>
                                         )
-                                    })
-                                }
+                                    })}
+                                <Box className={styles.selectorButtonContainer}>
+                                    <Button grey className={styles.selectorButton} onClick={() => setMultiOpen(false)}>Close</Button>
+                                </Box>
                             </Selector>
                         </Box>
                     )

@@ -2,7 +2,6 @@ import React, {useEffect, useState} from "react";
 import {useApi} from "@/pages/api/api";
 import {Box} from "@mui/material";
 import PromptComponent from "@/pages/asset/Prompt/PromptComponent";
-import {socket} from "@/socket";
 import _ from "lodash";
 import {packFilter} from "@/utils/Filter";
 import {ScoopLoader} from "@/components/ScoopLoader/ScoopLoader";
@@ -14,6 +13,7 @@ const PromptWrapperComponent = ({
                                     workspaceID,
                                     userID,
                                     designID,
+                                    sendMessage,
                                     socketConnected
                                 }) => {
 
@@ -28,33 +28,30 @@ const PromptWrapperComponent = ({
 
     useEffect(() => {
         if (socketConnected) {
-            socket.send(JSON.stringify({
+            sendMessage(JSON.stringify({
                 action: 'registerItem',
                 groupID: designID,
                 itemID: itemID
             }))
+            postData({
+                "action": "loadCanvasWithThemes",
+                "userID": userID,
+                "workspaceID": workspaceID,
+                "canvasID": canvasID,
+            }).then(r => {
+                const prompts = r.canvas.canvasObjects.filter(o => o.type === 'Prompt')
+                const updatedPrompts = _.flatten(prompts.map(p => p.promptProps.prompt))
+                sendMessage(JSON.stringify({
+                    action: 'updatePrompts',
+                    groupID: designID,
+                    itemID: itemID,
+                    prompts: packFilter(updatedPrompts)
+                }))
+                setPrompts(prompts)
+                setLoading(false)
+            })
         }
     }, [socketConnected]);
-
-    useEffect(() => {
-        postData({
-            "action": "loadCanvasWithThemes",
-            "userID": userID,
-            "workspaceID": workspaceID,
-            "canvasID": canvasID,
-        }).then(r => {
-            const prompts = r.canvas.canvasObjects.filter(o => o.type === 'Prompt')
-            const updatedPrompts = _.flatten(prompts.map(p => p.promptProps.prompt))
-            socket.send(JSON.stringify({
-                action: 'updatePrompts',
-                groupID: designID,
-                itemID: itemID,
-                prompts: packFilter(updatedPrompts)
-            }))
-            setPrompts(prompts)
-            setLoading(false)
-        })
-    }, []);
 
     const onPromptChange = (id, changedPrompt) => {
         const changedIndex = prompts.findIndex(p => p.id === id)
@@ -62,7 +59,7 @@ const PromptWrapperComponent = ({
             const promptsCopy = [...prompts]
             promptsCopy[changedIndex].promptProps = changedPrompt
             const updatedPrompts = _.flatten(promptsCopy.map(p => p.promptProps.prompt))
-            socket.send(JSON.stringify({
+            sendMessage(JSON.stringify({
                 action: 'updatePrompts',
                 groupID: designID,
                 itemID: itemID,

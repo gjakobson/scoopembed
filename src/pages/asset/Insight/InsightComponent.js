@@ -12,7 +12,6 @@ import CloseIcon from '../../../../public/icons/CloseIcon.svg?url';
 import CloseIconWhite from '../../../../public/icons/CloseIconWhite.svg?url';
 import {useApi} from "@/pages/api/api";
 import {ScoopLoader} from "@/components/ScoopLoader/ScoopLoader";
-import {socket} from "@/socket";
 import {getDefaultTheme, isLightColor, SORTING} from "@/utils/utils";
 
 const getTheme = (config, chartState) => {
@@ -31,6 +30,7 @@ const InsightComponent = ({
     insightKey,
     workspaceMetadata,
     socketConnected,
+    sendMessage,
     serverUpdate,
     screenshot,
     designID
@@ -56,6 +56,8 @@ const InsightComponent = ({
         document.getElementById('scoop-element-container') :
         {offsetWidth: 0, offsetHeight: 0}
     const theme = getTheme(config, chartState)
+
+    console.log(serverUpdate)
 
     useEffect(() => {
         setLoading(true)
@@ -89,7 +91,7 @@ const InsightComponent = ({
                 itemID: itemID
             }
             if (config.worksheetID) action.worksheetID = config.worksheetID
-            socket.send(JSON.stringify(action))
+            sendMessage(JSON.stringify(action))
             setRegistered(true)
         }
     }, [socketConnected, loading, config]);

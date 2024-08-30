@@ -2,7 +2,19 @@ import React from "react";
 import {FormControl, Select} from "@mui/material";
 import styles from './Selector.module.css';
 
-const Selector = ({removeMargin, value, onChange, children, label, placeholder, labelClassName, ...props}) => {
+const Selector = ({
+                      removeMargin,
+                      value,
+                      onChange,
+                      children,
+                      label,
+                      placeholder,
+                      labelClassName,
+                      open,
+                      onOpen,
+                      onClose,
+                      ...props
+}) => {
 
     const [isFocused, setIsFocused] = React.useState(false);
 
@@ -23,12 +35,13 @@ const Selector = ({removeMargin, value, onChange, children, label, placeholder, 
             <label className={styles.selectorLabel}>{label}</label>
             <Select
                 className={`${styles.selector} ${isFocused ? styles.purpleBorderSelector : ''}`}
-                labelId="workspace-select-label"
-                id="workspace-select"
                 value={value}
                 onChange={onChange}
                 onFocus={handleFocus}
                 onBlur={handleBlur}
+                open={open}
+                onOpen={onOpen}
+                onClose={onClose}
                 {...props}
             >
                 {children}
