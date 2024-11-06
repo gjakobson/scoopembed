@@ -11,6 +11,7 @@ import useWebSocket from "react-use-websocket";
 const SheetletComponent = dynamic(() => import('./SheetletComponent'), {ssr: false});
 const InsightComponent = dynamic(() => import('./Insight/InsightComponent'), {ssr: false});
 const PromptWrapperComponent = dynamic(() => import('./Prompt/PromptWrapperComponent'), {ssr: false});
+const ProcessComponent = dynamic(() => import('./Process/ProcessComponent'), {ssr: false});
 
 // NOTES FOR TESTING:
 // prompt: https://embed.scoopanalytics.com/asset/prompt?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W475:C416:DAGNq3u-Fng:screenshot=true:invite=Omega105-012
@@ -66,7 +67,7 @@ const Asset = ({id, userID, workspaceID, elementParams, designID, invite, screen
                 workspaceID={workspaceID}
                 elementParams={elementParams}
                 designID={designID}
-                screenshot={screenshot.split('=')[1] === 'true'}
+                screenshot={screenshot}
                 invite={invite}
             />
         </div>
@@ -84,13 +85,14 @@ const AuthenticatedContent = withAuth(({
                                        }) => {
 
     const params = elementParams.split('|');
+    const screenshotParams = screenshot.substring(screenshot.indexOf('=') + 1).split('|');
     const router = useRouter();
     const [token, setToken] = useState(null);
     const [workspaceMetadata, setWorkspaceMetadata] = useState(null);
     const [server, setServer] = useState(new Server(workspaceID, userID, token));
     const {sendMessage, lastMessage, readyState} = useWebSocket('wss://yf8adv3utf.execute-api.us-west-2.amazonaws.com/production/', {shouldReconnect: () => true})
 
-    console.log('version 0.0.6')
+    console.log('version 0.0.7')
 
     useEffect(() => {
         if (invite) {
@@ -140,7 +142,8 @@ const AuthenticatedContent = withAuth(({
                         designID={designID}
                         userID={userID}
                         socketConnected={readyState === 1}
-                        screenshot={screenshot}
+                        screenshot={screenshotParams[0] === 'true'}
+                        urlPrompt={screenshotParams[1]}
                         sendMessage={sendMessage}
                     />
                 )
@@ -169,6 +172,22 @@ const AuthenticatedContent = withAuth(({
                         serverUpdate={serverUpdate}
                         designID={designID}
                         socketConnected={readyState === 1}
+                        sendMessage={sendMessage}
+                    />
+                )
+            case 'process':
+                return (
+                    <ProcessComponent
+                        token={token}
+                        workspaceID={workspaceID}
+                        processName={params[0].replaceAll('-', ' ')}
+                        workspaceMetadata={workspaceMetadata}
+                        server={server}
+                        serverUpdate={serverUpdate}
+                        designID={designID}
+                        userID={userID}
+                        socketConnected={readyState === 1}
+                        screenshot={screenshotParams[0] === 'true'}
                         sendMessage={sendMessage}
                     />
                 )

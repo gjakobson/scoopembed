@@ -21,28 +21,36 @@ export const CONFIG_OPTIONS = {
     RADIAL: 'radialBar',
     TABLE_BODY: 'tableBody',
     TABLE_HEADER: 'tableHeader',
+    KPI_TITLE: 'kpiTitle',
+    KPI_VALUE: 'kpiValue',
+    KPI_COMPARE: 'kpiCompare',
+    KPI_BODY: 'kpiBody',
 }
 
 export const CONFIG_BUTTONS = [
-    {label: 'Bar', key: CONFIG_OPTIONS.BAR, toggle: false},
-    {label: 'Line', key: CONFIG_OPTIONS.LINE, toggle: false},
-    {label: 'Area', key: CONFIG_OPTIONS.AREA, toggle: false},
-    {label: 'Waterfall', key: CONFIG_OPTIONS.WATERFALL, toggle: false},
-    {label: 'Pie', key: CONFIG_OPTIONS.PIE, toggle: false},
-    {label: 'Donut', key: CONFIG_OPTIONS.DONUT, toggle: false},
-    {label: 'Pictorial', key: CONFIG_OPTIONS.PICTORIAL, toggle: false},
-    {label: 'Gauge', key: CONFIG_OPTIONS.GAUGE, toggle: false},
-    {label: 'Radial', key: CONFIG_OPTIONS.RADIAL, toggle: false},
-    {label: 'Color palette', key: CONFIG_OPTIONS.COLORS, toggle: false},
-    {label: 'Margins', key: CONFIG_OPTIONS.MARGINS, toggle: true},
-    {label: 'Title', key: CONFIG_OPTIONS.TITLE, toggle: true},
-    {label: 'Legend', key: CONFIG_OPTIONS.LEGEND, toggle: true},
-    {label: 'Grid lines', key: CONFIG_OPTIONS.SPLIT_LINES, toggle: true},
-    {label: 'Tooltip', key: CONFIG_OPTIONS.TOOLTIP, toggle: true},
-    {label: 'X Axis', key: CONFIG_OPTIONS.X_AXIS, toggle: true},
-    {label: 'Y Axis', key: CONFIG_OPTIONS.Y_AXIS, toggle: true},
-    {label: 'Table Header', key: CONFIG_OPTIONS.TABLE_HEADER, toggle: true},
-    {label: 'Table Body', key: CONFIG_OPTIONS.TABLE_BODY, toggle: true},
+    { label: 'Bar', key: CONFIG_OPTIONS.BAR },
+    { label: 'Line', key: CONFIG_OPTIONS.LINE },
+    { label: 'Area', key: CONFIG_OPTIONS.AREA },
+    { label: 'Waterfall', key: CONFIG_OPTIONS.WATERFALL },
+    { label: 'Pie', key: CONFIG_OPTIONS.PIE },
+    { label: 'Donut', key: CONFIG_OPTIONS.DONUT },
+    { label: 'Pictorial', key: CONFIG_OPTIONS.PICTORIAL },
+    { label: 'Gauge', key: CONFIG_OPTIONS.GAUGE },
+    { label: 'Radial', key: CONFIG_OPTIONS.RADIAL },
+    { label: 'Color palette', key: CONFIG_OPTIONS.COLORS },
+    { label: 'Margins', key: CONFIG_OPTIONS.MARGINS },
+    { label: 'Title', key: CONFIG_OPTIONS.TITLE },
+    { label: 'Legend', key: CONFIG_OPTIONS.LEGEND },
+    { label: 'Grid lines', key: CONFIG_OPTIONS.SPLIT_LINES },
+    { label: 'Tooltip', key: CONFIG_OPTIONS.TOOLTIP },
+    { label: 'X Axis', key: CONFIG_OPTIONS.X_AXIS },
+    { label: 'Y Axis', key: CONFIG_OPTIONS.Y_AXIS },
+    { label: 'Header', key: CONFIG_OPTIONS.TABLE_HEADER },
+    { label: 'Body', key: CONFIG_OPTIONS.TABLE_BODY },
+    { label: 'Body', key: CONFIG_OPTIONS.KPI_BODY },
+    { label: 'Title', key: CONFIG_OPTIONS.KPI_TITLE },
+    { label: 'Value', key: CONFIG_OPTIONS.KPI_VALUE },
+    { label: 'Compare value', key: CONFIG_OPTIONS.KPI_COMPARE },
 ]
 
 export const FONT_FAMILIES = [
@@ -53,79 +61,79 @@ export const FONT_FAMILIES = [
     'Montserrat',
     'Poppins',
     'Oswald',
-    'Raleway'
-];
+    'Raleway',
+]
 
 export const TEXT_ALIGN = [
-    {label: 'Left', value: 'left'},
-    {label: 'Center', value: 'center'},
-    {label: 'Right', value: 'right'}
-];
+    { label: 'Left', value: 'left' },
+    { label: 'Center', value: 'center' },
+    { label: 'Right', value: 'right' },
+]
 
 export const FONT_WEIGHTS = [
-    {label: 'Light', value: 300},
-    {label: 'Regular', value: 400},
-    {label: 'Medium', value: 500},
-    {label: 'Bold', value: 700},
-    {label: 'Bolder', value: 900}
-];
+    { label: 'Light', value: 300 },
+    { label: 'Regular', value: 400 },
+    { label: 'Medium', value: 500 },
+    { label: 'Bold', value: 700 },
+    { label: 'Bolder', value: 900 },
+]
 
 export const LINE_STYLES = [
-    {label: 'Solid', value: 'solid'},
-    {label: 'Dotted', value: 'dotted'},
-    {label: 'Dashed', value: 'dashed'}
-];
+    { label: 'Solid', value: 'solid' },
+    { label: 'Dotted', value: 'dotted' },
+    { label: 'Dashed', value: 'dashed' },
+]
 
 export const SYMBOLS = [
-    {label: 'Circle', value: 'circle'},
-    {label: 'Rectangle', value: 'rect'},
-    {label: 'Round Rectangle', value: 'roundRect'},
-    {label: 'Triangle', value: 'triangle'},
-    {label: 'Diamond', value: 'diamond'},
-    {label: 'Pin', value: 'pin'},
-    {label: 'Arrow', value: 'arrow'},
-    {label: 'None', value: 'none'}
-];
+    { label: 'Circle', value: 'circle' },
+    { label: 'Rectangle', value: 'rect' },
+    { label: 'Round Rectangle', value: 'roundRect' },
+    { label: 'Triangle', value: 'triangle' },
+    { label: 'Diamond', value: 'diamond' },
+    { label: 'Pin', value: 'pin' },
+    { label: 'Arrow', value: 'arrow' },
+    { label: 'None', value: 'none' },
+]
 
 export const MAX_LEGENDS = [
-    {label: '5', value: 5},
-    {label: '10', value: 10},
-    {label: '15', value: 15},
-    {label: '20', value: 20},
-    {label: 'All', value: 'all'},
-];
+    { label: '5', value: 5 },
+    { label: '10', value: 10 },
+    { label: '15', value: 15 },
+    { label: '20', value: 20 },
+    { label: 'All', value: 'all' },
+]
 
 export const H_ALIGNMENT = [
-    {label: 'Center', value: 'center'},
-    {label: 'Left', value: 'left'},
-    {label: 'Right', value: 'right'}
-];
+    { label: 'Center', value: 'center' },
+    { label: 'Left', value: 'left' },
+    { label: 'Right', value: 'right' },
+]
 
 export const V_ALIGNMENT = [
-    {label: 'Top', value: 'top'},
-    {label: 'Middle', value: 'middle'},
-    {label: 'Bottom', value: 'bottom'}
-];
+    { label: 'Top', value: 'top' },
+    { label: 'Middle', value: 'middle' },
+    { label: 'Bottom', value: 'bottom' },
+]
 
 export const PIE_ORIENTATIONS = [
-    {label: 'Full', value: 'full'},
-    {label: 'Left', value: 'left'},
-    {label: 'Right', value: 'right'},
-    {label: 'Top', value: 'top'},
-    {label: 'Bottom', value: 'bottom'}
-];
+    { label: 'Full', value: 'full' },
+    { label: 'Left', value: 'left' },
+    { label: 'Right', value: 'right' },
+    { label: 'Top', value: 'top' },
+    { label: 'Bottom', value: 'bottom' },
+]
 
 export const PICTORIAL_POSITIONS = [
-    {label: 'Start', value: 'start'},
-    {label: 'Center', value: 'center'},
-    {label: 'End', value: 'end'}
-];
+    { label: 'Start', value: 'start' },
+    { label: 'Center', value: 'center' },
+    { label: 'End', value: 'end' },
+]
 
 export const EMPHASIS_OPTIONS = [
-    {label: 'Default', value: 'none'},
-    {label: 'Series', value: 'series'},
-    {label: 'Self', value: 'self'}
-];
+    { label: 'Default', value: 'none' },
+    { label: 'Series', value: 'series' },
+    { label: 'Self', value: 'self' },
+]
 
 export const PIE_DEFAULT_VALUES = {
     radius: ['0%', '60%'],
@@ -134,11 +142,16 @@ export const PIE_DEFAULT_VALUES = {
     emphasis: {
         scale: true,
     },
+    label: {
+        color: '#6E7079',
+        fontSize: 12,
+        fontFamily: FONT_FAMILIES[0],
+    },
     startAngle: 0,
     endAngle: 360,
     itemStyle: {
-        borderRadius: 0
-    }
+        borderRadius: 0,
+    },
 }
 
 export const DONUT_DEFAULT_VALUES = {
@@ -150,10 +163,6 @@ export const AXIS_TEXT_DEFAULT_VALUES = {
     fontFamily: FONT_FAMILIES[0],
     fontWeight: FONT_WEIGHTS[1].value,
     fontSize: 14,
-    fontScaleFactor: {
-        x: 14 / ((typeof window !== 'undefined' ? window.innerWidth : 0) - 600),
-        y: 14 / ((typeof window !== 'undefined' ? window.innerHeight : 0) - 112)
-    },
     color: '#6E7079',
     rotate: 0,
 }
@@ -168,16 +177,13 @@ export const LEGEND_DEFAULT_VALUES = {
         fontFamily: FONT_FAMILIES[0],
         fontWeight: FONT_WEIGHTS[2].value,
         fontSize: 12,
-        fontScaleFactor: {
-            x: 12 / ((typeof window !== 'undefined' ? window.innerWidth : 0) - 600),
-            y: 12 / ((typeof window !== 'undefined' ? window.innerHeight : 0) - 112)
-        },
         color: '#6E7079',
     },
     borderColor: '#ccc',
     borderWidth: 0,
     show: true,
     icon: SYMBOLS[0].value,
+    itemSize: 12,
 }
 
 export const MARGIN_DEFAULT_VALUES = {
@@ -196,24 +202,20 @@ export const TITLE_DEFAULT_VALUES = {
         fontFamily: FONT_FAMILIES[0],
         fontWeight: FONT_WEIGHTS[2].value,
         fontSize: 36,
-        fontScaleFactor: {
-            x: 36 / ((typeof window !== 'undefined' ? window.innerWidth : 0) - 600),
-            y: 36 / ((typeof window !== 'undefined' ? window.innerHeight : 0) - 112)
-        },
         color: '#6E7079',
     },
-    show: true
+    show: true,
 }
 
 export const AXIS_DEFAULT_VALUES = {
     show: true,
     splitLine: {
-        show: true,
+        show: false,
         lineStyle: {
             color: '#E0E6F1',
             width: 1,
-            type: 'dashed'
-        }
+            type: 'dashed',
+        },
     },
     min: undefined,
     max: undefined,
@@ -227,11 +229,7 @@ export const TOOLTIP_DEFAULT_VALUES = {
         fontFamily: FONT_FAMILIES[0],
         fontWeight: FONT_WEIGHTS[2].value,
         fontSize: 12,
-        fontScaleFactor: {
-            x: 12 / ((typeof window !== 'undefined' ? window.innerWidth : 0) - 600),
-            y: 12 / ((typeof window !== 'undefined' ? window.innerHeight : 0) - 112)
-        },
-        color: '#000000'
+        color: '#000000',
     },
 }
 
@@ -242,11 +240,11 @@ export const BAR_DEFAULT_VALUES = {
     emphasis: {
         disabled: false,
         focus: 'series',
-        blurScope: 'coordinateSystem'
+        blurScope: 'coordinateSystem',
     },
     itemStyle: {
-        borderRadius: [5, 5, 0, 0]
-    }
+        borderRadius: [5, 5, 0, 0],
+    },
 }
 
 export const LINE_DEFAULT_VALUES = {
@@ -254,8 +252,8 @@ export const LINE_DEFAULT_VALUES = {
     symbol: SYMBOLS[0].value,
     symbolSize: 4,
     lineStyle: {
-        width: 2
-    }
+        width: 2,
+    },
 }
 
 export const WATERFALL_DEFAULT_VALUES = {
@@ -287,7 +285,7 @@ export const GAUGE_DEFAULT_VALUES = {
         {
             value: undefined,
             name: undefined,
-        }
+        },
     ],
     min: 0,
     max: 100,
@@ -306,7 +304,7 @@ export const GAUGE_DEFAULT_VALUES = {
         show: true,
         itemStyle: {
             color: '#2B65D9',
-        }
+        },
     },
     detail: {
         show: true,
@@ -314,33 +312,37 @@ export const GAUGE_DEFAULT_VALUES = {
         fontWeight: FONT_WEIGHTS[2].value,
         fontFamily: FONT_FAMILIES[0],
         color: '#2B65D9',
-        offsetCenter: ['0%', '50%']
+        offsetCenter: ['0%', '50%'],
     },
     startAngle: 225,
     endAngle: -45,
     axisLine: {
         lineStyle: {
             width: 10,
-            color: [
-                [1, '#E6EBF8']
-            ]
-        }
+            color: [[1, '#E6EBF8']],
+        },
     },
     axisTick: {
         splitNumber: 5,
         distance: 10,
         lineStyle: {
             color: '#E6EBF8',
-            width: 1
-        }
+            width: 1,
+        },
+    },
+    axisLabel: {
+        show: true,
+        fontSize: 14,
+        fontFamily: 'Source Sans Pro',
+        color: '#6E7079',
     },
     splitLine: {
         show: true,
         length: 20,
         lineStyle: {
             color: '#E6EBF8',
-            width: 1
-        }
+            width: 1,
+        },
     },
     title: {
         show: true,
@@ -348,14 +350,14 @@ export const GAUGE_DEFAULT_VALUES = {
         fontWeight: FONT_WEIGHTS[2].value,
         fontFamily: FONT_FAMILIES[0],
         color: '#2B65D9',
-        offsetCenter: ['0%', '75%']
+        offsetCenter: ['0%', '75%'],
     },
 }
 
 export const RADIAL_DEFAULT_VALUES = {
     polar: {
         center: ['50%', '50%'],
-        radius: ['0%', '75%']
+        radius: ['0%', '75%'],
     },
     angleAxis: {
         startAngle: 75,
@@ -366,33 +368,39 @@ export const RADIAL_DEFAULT_VALUES = {
             show: true,
             color: '#6E7079',
             fontSize: 14,
-            fontFamily: 'Source Sans Pro'
+            fontFamily: 'Source Sans Pro',
         },
         axisLine: {
             show: true,
             lineStyle: {
                 color: '#E0E6F1',
-                type: 'dashed'
-            }
+                type: 'dashed',
+            },
         },
         splitLine: {
             show: true,
             lineStyle: {
                 color: '#E0E6F1',
-                type: 'dashed'
-            }
-        }
+                type: 'dashed',
+            },
+        },
     },
     emphasis: {
         disabled: false,
         focus: EMPHASIS_OPTIONS[0].value,
     },
     itemStyle: {
-        borderRadius: [0, 0]
+        borderRadius: [0, 0],
+    },
+    label: {
+        show: true,
+        color: '#6E7079',
+        fontSize: 6,
+        fontFamily: 'Source Sans Pro',
+        rotate: 0,
     },
     stack: true,
     barWidth: '50%',
-
 }
 
 export const TABLE_DEFAULT_VALUES = {
@@ -406,7 +414,34 @@ export const TABLE_DEFAULT_VALUES = {
     headerFontWeight: FONT_WEIGHTS[2].value,
     backgroundColor: '#F0F0F0',
     headerBackgroundColor: '#E6E4E6',
-    hideBorder: false
+    hideBorder: false,
+}
+
+export const KPI_DEFAULT_VALUES = {
+    title: {
+        fontColor: '#000000FF',
+        fontSize: 14,
+        fontFamily: FONT_FAMILIES[1],
+        fontWeight: FONT_WEIGHTS[1].value,
+    },
+    value: {
+        fontColor: '#000000FF',
+        fontSize: 60,
+        fontFamily: FONT_FAMILIES[1],
+        fontWeight: FONT_WEIGHTS[3].value,
+    },
+    compare: {
+        fontColor: '#000000FF',
+        fontSize: 14,
+        fontFamily: FONT_FAMILIES[1],
+        fontWeight: FONT_WEIGHTS[1].value,
+        positiveColor: '#00923AFF',
+        negativeColor: '#EB382AFF',
+    },
+    body: {
+        borderRadius: 10,
+        padding: 20,
+    },
 }
 
 export const CHART_PREFERENCES_DEFAULT_VALUES = {
@@ -418,15 +453,18 @@ export const CHART_PREFERENCES_DEFAULT_VALUES = {
         ...AXIS_DEFAULT_VALUES,
         splitLine: {
             ...AXIS_DEFAULT_VALUES.splitLine,
-            show: false
+            show: false,
         },
         axisLabel: AXIS_TEXT_DEFAULT_VALUES,
-        nameTextStyle: AXIS_TEXT_DEFAULT_VALUES
+        nameTextStyle: AXIS_TEXT_DEFAULT_VALUES,
     },
     yAxis: {
-        ...AXIS_DEFAULT_VALUES,
+        splitLine: {
+            ...AXIS_DEFAULT_VALUES.splitLine,
+            show: true,
+        },
         axisLabel: AXIS_TEXT_DEFAULT_VALUES,
-        nameTextStyle: AXIS_TEXT_DEFAULT_VALUES
+        nameTextStyle: AXIS_TEXT_DEFAULT_VALUES,
     },
     bar: BAR_DEFAULT_VALUES,
     line: LINE_DEFAULT_VALUES,
@@ -437,6 +475,7 @@ export const CHART_PREFERENCES_DEFAULT_VALUES = {
     gauge: GAUGE_DEFAULT_VALUES,
     radialBar: RADIAL_DEFAULT_VALUES,
     table: TABLE_DEFAULT_VALUES,
+    kpi: KPI_DEFAULT_VALUES,
 }
 
 export const DEFAULT_CHART_PREFERENCES = {
@@ -449,7 +488,7 @@ export const DEFAULT_CHART_PREFERENCES = {
             fontWeight: undefined,
             fontSize: undefined,
             color: undefined,
-        }
+        },
     },
     legend: {
         show: undefined,
@@ -466,6 +505,7 @@ export const DEFAULT_CHART_PREFERENCES = {
         borderColor: undefined,
         borderWidth: undefined,
         icon: undefined,
+        itemSize: undefined,
     },
     tooltip: {
         borderColor: undefined,
@@ -476,7 +516,7 @@ export const DEFAULT_CHART_PREFERENCES = {
             fontWeight: undefined,
             fontSize: undefined,
             color: undefined,
-        }
+        },
     },
     grid: {
         left: undefined,
@@ -484,56 +524,60 @@ export const DEFAULT_CHART_PREFERENCES = {
         top: undefined,
         bottom: undefined,
     },
-    xAxis: {
-        show: undefined,
-        splitLine: {
+    xAxis: [
+        {
             show: undefined,
-            lineStyle: {
+            splitLine: {
+                show: undefined,
+                lineStyle: {
+                    color: undefined,
+                    width: undefined,
+                    type: undefined,
+                },
+            },
+            axisLabel: {
+                fontFamily: undefined,
+                fontWeight: undefined,
+                fontSize: undefined,
                 color: undefined,
-                width: undefined,
-                type: undefined
-            }
+                rotate: undefined,
+            },
+            nameTextStyle: {
+                fontFamily: undefined,
+                fontWeight: undefined,
+                fontSize: undefined,
+                color: undefined,
+                rotate: undefined,
+            },
         },
-        axisLabel: {
-            fontFamily: undefined,
-            fontWeight: undefined,
-            fontSize: undefined,
-            color: undefined,
-            rotate: undefined
-        },
-        nameTextStyle: {
-            fontFamily: undefined,
-            fontWeight: undefined,
-            fontSize: undefined,
-            color: undefined,
-            rotate: undefined
-        }
-    },
-    yAxis: {
-        show: undefined,
-        splitLine: {
+    ],
+    yAxis: [
+        {
             show: undefined,
-            lineStyle: {
+            splitLine: {
+                show: undefined,
+                lineStyle: {
+                    color: undefined,
+                    width: undefined,
+                    type: undefined,
+                },
+            },
+            axisLabel: {
+                fontFamily: undefined,
+                fontWeight: undefined,
+                fontSize: undefined,
                 color: undefined,
-                width: undefined,
-                type: undefined
-            }
+                rotate: undefined,
+            },
+            nameTextStyle: {
+                fontFamily: undefined,
+                fontWeight: undefined,
+                fontSize: undefined,
+                color: undefined,
+                rotate: undefined,
+            },
         },
-        axisLabel: {
-            fontFamily: undefined,
-            fontWeight: undefined,
-            fontSize: undefined,
-            color: undefined,
-            rotate: undefined
-        },
-        nameTextStyle: {
-            fontFamily: undefined,
-            fontWeight: undefined,
-            fontSize: undefined,
-            color: undefined,
-            rotate: undefined
-        }
-    },
+    ],
     bar: {
         barWidth: undefined,
         barGap: undefined,
@@ -541,19 +585,19 @@ export const DEFAULT_CHART_PREFERENCES = {
         emphasis: {
             disabled: undefined,
             focus: undefined,
-            blurScope: undefined
+            blurScope: undefined,
         },
         itemStyle: {
-            borderRadius: undefined
-        }
+            borderRadius: undefined,
+        },
     },
     line: {
         smooth: undefined,
         symbol: undefined,
         symbolSize: undefined,
         lineStyle: {
-            width: undefined
-        }
+            width: undefined,
+        },
     },
     waterfall: {
         startColor: undefined,
@@ -569,13 +613,15 @@ export const DEFAULT_CHART_PREFERENCES = {
             scale: undefined,
         },
         label: {
-            color: undefined
+            color: undefined,
+            fontSize: undefined,
+            fontFamily: undefined,
         },
         startAngle: undefined,
         endAngle: undefined,
         itemStyle: {
-            borderRadius: undefined
-        }
+            borderRadius: undefined,
+        },
     },
     donut: {
         radius: undefined,
@@ -585,13 +631,15 @@ export const DEFAULT_CHART_PREFERENCES = {
             scale: undefined,
         },
         label: {
-            color: undefined
+            color: undefined,
+            fontSize: undefined,
+            fontFamily: undefined,
         },
         startAngle: undefined,
         endAngle: undefined,
         itemStyle: {
-            borderRadius: undefined
-        }
+            borderRadius: undefined,
+        },
     },
     pictorialBar: {
         data: [],
@@ -619,7 +667,7 @@ export const DEFAULT_CHART_PREFERENCES = {
             show: undefined,
             itemStyle: {
                 color: undefined,
-            }
+            },
         },
         detail: {
             show: undefined,
@@ -627,31 +675,37 @@ export const DEFAULT_CHART_PREFERENCES = {
             fontWeight: undefined,
             fontFamily: undefined,
             color: undefined,
-            offsetCenter: undefined
+            offsetCenter: undefined,
         },
         startAngle: undefined,
         endAngle: undefined,
         axisLine: {
             lineStyle: {
                 width: undefined,
-                color: undefined
-            }
+                color: undefined,
+            },
         },
         axisTick: {
             splitNumber: undefined,
             distance: undefined,
             lineStyle: {
                 color: undefined,
-                width: undefined
-            }
+                width: undefined,
+            },
+        },
+        axisLabel: {
+            show: undefined,
+            fontSize: undefined,
+            fontFamily: undefined,
+            color: undefined,
         },
         splitLine: {
             show: undefined,
             length: undefined,
             lineStyle: {
                 color: undefined,
-                width: undefined
-            }
+                width: undefined,
+            },
         },
         title: {
             show: undefined,
@@ -659,13 +713,13 @@ export const DEFAULT_CHART_PREFERENCES = {
             fontWeight: undefined,
             fontFamily: undefined,
             color: undefined,
-            offsetCenter: undefined
-        }
+            offsetCenter: undefined,
+        },
     },
     radialBar: {
         polar: {
             center: undefined,
-            radius: undefined
+            radius: undefined,
         },
         angleAxis: {
             startAngle: undefined,
@@ -676,29 +730,36 @@ export const DEFAULT_CHART_PREFERENCES = {
                 show: undefined,
                 color: undefined,
                 fontSize: undefined,
-                fontFamily: undefined
+                fontFamily: undefined,
             },
             axisLine: {
                 show: undefined,
                 lineStyle: {
                     color: undefined,
-                    type: undefined
-                }
+                    type: undefined,
+                },
             },
             splitLine: {
                 show: undefined,
                 lineStyle: {
                     color: undefined,
-                    type: undefined
-                }
-            }
+                    type: undefined,
+                },
+            },
         },
         emphasis: {
             disabled: undefined,
             focus: undefined,
         },
         itemStyle: {
-            borderRadius: undefined
+            borderRadius: undefined,
+        },
+        label: {
+            show: undefined,
+            color: undefined,
+            fontSize: undefined,
+            fontFamily: undefined,
+            rotate: undefined,
         },
         stack: undefined,
         barWidth: undefined,
@@ -714,18 +775,44 @@ export const DEFAULT_CHART_PREFERENCES = {
         headerFontWeight: undefined,
         backgroundColor: undefined,
         headerBackgroundColor: undefined,
-        hideBorder: undefined
-    }
+        hideBorder: undefined,
+    },
+    kpi: {
+        title: {
+            fontColor: undefined,
+            fontSize: undefined,
+            fontFamily: undefined,
+            fontWeight: undefined,
+        },
+        value: {
+            fontColor: undefined,
+            fontSize: undefined,
+            fontFamily: undefined,
+            fontWeight: undefined,
+        },
+        compare: {
+            fontColor: undefined,
+            fontSize: undefined,
+            fontFamily: undefined,
+            fontWeight: undefined,
+            positiveColor: undefined,
+            negativeColor: undefined,
+        },
+        body: {
+            borderRadius: undefined,
+            padding: undefined,
+        },
+    },
 }
 
 export const simpleOption = {
     animation: false,
     xAxis: {
         data: ['a'],
-        show: false
+        show: false,
     },
     yAxis: {
-        show: false
+        show: false,
     },
     series: [
         {
@@ -733,46 +820,46 @@ export const simpleOption = {
             data: [10],
             silent: true,
             itemStyle: {
-                borderRadius: 5
-            }
+                borderRadius: 5,
+            },
         },
         {
             type: 'bar',
             data: [30],
             silent: true,
             itemStyle: {
-                borderRadius: 5
-            }
+                borderRadius: 5,
+            },
         },
         {
             type: 'bar',
             data: [40],
             silent: true,
             itemStyle: {
-                borderRadius: 5
-            }
+                borderRadius: 5,
+            },
         },
         {
             type: 'bar',
             data: [50],
             silent: true,
             itemStyle: {
-                borderRadius: 5
-            }
+                borderRadius: 5,
+            },
         },
         {
             type: 'bar',
             data: [20],
             silent: true,
             itemStyle: {
-                borderRadius: 5
-            }
+                borderRadius: 5,
+            },
         },
     ],
     grid: {
         left: 0,
         right: 0,
         top: 20,
-        bottom: 20
-    }
-};
+        bottom: 20,
+    },
+}

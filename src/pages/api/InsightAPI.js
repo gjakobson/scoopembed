@@ -1,33 +1,56 @@
 import {DEFAULT_CHART_PREFERENCES} from "@/utils/styleConsts";
+import {cloneDeep, merge} from "lodash";
 
-export const fixFontScaleFactors = (insight) => {
-    if (typeof window !== 'undefined') {
-        const height = (window.innerHeight - 112)
-        const width = (window.innerWidth - 600)
-        insight.styleOverrides.title.textStyle.fontScaleFactor = {
-            x: insight.styleOverrides.title.textStyle.fontSize / width,
-            y: insight.styleOverrides.title.textStyle.fontSize / height
+export const backwardsFlag = '2.1.8'
+
+export const SORTING = {
+    ASC: 'ascending',
+    DESC: 'descending',
+    NAT: 'natural',
+}
+
+export const SORTING_OPTIONS = [
+    { label: 'Ascending', value: SORTING.ASC },
+    { label: 'Descending', value: SORTING.DESC },
+    { label: 'Natural', value: SORTING.NAT },
+]
+
+export const DEFAULT_SORTING = {
+    sortOrder: SORTING.NAT,
+    sortBy: '',
+}
+
+export const removeFontScaleFactors = (insight) => {
+    if (insight.styleOverrides?.title?.textStyle?.fontScaleFactor) {
+        delete insight.styleOverrides.title.textStyle.fontScaleFactor
+    }
+    if (insight.styleOverrides?.legend?.textStyle?.fontScaleFactor) {
+        delete insight.styleOverrides.legend.textStyle.fontScaleFactor
+    }
+    if (insight.styleOverrides?.legend?.fontScaleFactor) {
+        delete insight.styleOverrides.legend.fontScaleFactor
+    }
+    insight.styleOverrides.yAxis.forEach((axis) => {
+        if (axis.axisLabel?.fontScaleFactor) {
+            delete axis.axisLabel.fontScaleFactor
         }
-        insight.styleOverrides.legend.textStyle.fontScaleFactor = {
-            x: insight.styleOverrides.legend.textStyle.fontSize / width,
-            y: insight.styleOverrides.legend.textStyle.fontSize / height
+        if (axis.nameTextStyle?.fontScaleFactor) {
+            delete axis.nameTextStyle.fontScaleFactor
         }
-        insight.styleOverrides.xAxis.axisLabel.fontScaleFactor = {
-            x: insight.styleOverrides.xAxis.axisLabel.fontSize / width,
-            y: insight.styleOverrides.xAxis.axisLabel.fontSize / height
+    })
+    insight.styleOverrides.xAxis.forEach((axis) => {
+        if (axis.axisLabel?.fontScaleFactor) {
+            delete axis.axisLabel.fontScaleFactor
         }
-        insight.styleOverrides.yAxis.axisLabel.fontScaleFactor = {
-            x: insight.styleOverrides.yAxis.axisLabel.fontSize / width,
-            y: insight.styleOverrides.yAxis.axisLabel.fontSize / height
+        if (axis.nameTextStyle?.fontScaleFactor) {
+            delete axis.nameTextStyle.fontScaleFactor
         }
-        insight.styleOverrides.xAxis.nameTextStyle.fontScaleFactor = {
-            x: insight.styleOverrides.xAxis.nameTextStyle.fontSize / width,
-            y: insight.styleOverrides.xAxis.nameTextStyle.fontSize / height
-        }
-        insight.styleOverrides.yAxis.nameTextStyle.fontScaleFactor = {
-            x: insight.styleOverrides.yAxis.nameTextStyle.fontSize / width,
-            y: insight.styleOverrides.yAxis.nameTextStyle.fontSize / height
-        }
+    })
+    if (insight.styleOverrides?.pie?.label?.fontScaleFactor) {
+        delete insight.styleOverrides.pie.label.fontScaleFactor
+    }
+    if (insight.styleOverrides?.donut?.label?.fontScaleFactor) {
+        delete insight.styleOverrides.donut.label.fontScaleFactor
     }
 }
 
@@ -41,7 +64,6 @@ export function loadFromSavedInsight(
     workspaceMetadata,
     callBack
 ) {
-
     if (!insight) {
         chartState.clear();
         return;
@@ -97,14 +119,88 @@ export function loadFromSavedInsight(
     }
     if (!insight.worksheetColumns) insight.worksheetColumns = []
     if (!insight.styleOverrides) insight.styleOverrides = {...DEFAULT_CHART_PREFERENCES}
-    if (!insight.styleOverrides.title) insight.styleOverrides.title = {...DEFAULT_CHART_PREFERENCES.title}
-    if (!insight.styleOverrides.legend) insight.styleOverrides.legend = {...DEFAULT_CHART_PREFERENCES.legend}
-    if (!insight.styleOverrides.title.textStyle.fontScaleFactor) fixFontScaleFactors(insight)
+    merge(insight.styleOverrides, DEFAULT_CHART_PREFERENCES)
+    // FOR BACKWARDS COMPATIBILITY
+    if (!Array.isArray(insight.styleOverrides.xAxis))
+        insight.styleOverrides.xAxis = [cloneDeep(insight.styleOverrides.xAxis)]
+    if (!Array.isArray(insight.styleOverrides.yAxis))
+        insight.styleOverrides.yAxis = [cloneDeep(insight.styleOverrides.yAxis)]
+    // ADD FONT DIMENSIONS AND REMOVE FONT-SCALE-FACTORS
+    if (!insight.styleOverrides.dimensions) {
+        if (insight.styleOverrides.title.textStyle.fontScaleFactor) {
+            if (insight.view !== 'kpi') {
+                insight.styleOverrides.dimensions = {
+                    width:
+                        (insight.styleOverrides.title.textStyle.fontSize ??
+                            TITLE_DEFAULT_VALUES.textStyle.fontSize) /
+                        insight.styleOverrides.title.textStyle.fontScaleFactor.x,
+                    height:
+                        (insight.styleOverrides.title.textStyle.fontSize ??
+                            TITLE_DEFAULT_VALUES.textStyle.fontSize) /
+                        insight.styleOverrides.title.textStyle.fontScaleFactor.y,
+                }
+            } else {
+                insight.styleOverrides.dimensions = { width: 200, height: 200 }
+            }
+        } else {
+            if (insight.view !== 'kpi') {
+                insight.styleOverrides.dimensions = {
+                    width: 900,
+                    height: 600,
+                }
+            } else {
+                insight.styleOverrides.dimensions = { width: 200, height: 200 }
+            }
+        }
+        removeFontScaleFactors(insight)
+    }
     if (!insight.styleOverrides.pie || !insight.styleOverrides.donut) {
         insight.styleOverrides.pie = {...DEFAULT_CHART_PREFERENCES.pie}
         insight.styleOverrides.donut = {...DEFAULT_CHART_PREFERENCES.donut}
     }
-    if (insight.worksheetID && insight.categoryAxis === 'Time') insight.categoryAxis = 'All'
+    if (!insight.styleOverrides.pie.itemStyle) {
+        insight.styleOverrides.pie.itemStyle = {
+            ...DEFAULT_CHART_PREFERENCES.pie.itemStyle,
+        }
+        insight.styleOverrides.donut.itemStyle = {
+            ...DEFAULT_CHART_PREFERENCES.donut.itemStyle,
+        }
+    }
+    if (!insight.styleOverrides.pie.label) {
+        insight.styleOverrides.pie.label = {
+            ...DEFAULT_CHART_PREFERENCES.pie.label,
+        }
+        insight.styleOverrides.donut.label = {
+            ...DEFAULT_CHART_PREFERENCES.donut.label,
+        }
+    }
+    if (!insight.sorting || typeof insight.sorting === 'string') {
+        insight.sorting = DEFAULT_SORTING
+    }
+    if (!insight.kpiCompareType) {
+        insight.kpiCompareType = 'percentage'
+        insight.kpiCompareTarget = undefined
+    }
+    if (insight.worksheetID && !insight.backwardsFlag) {
+        insight.backwardsFlag = backwardsFlag
+        insight.selectedTableColumns = insight.selectedTableColumns.map((c) => {
+            if (c.isMeasure && c.reportSeriesTableID.includes('orphan'))
+                return {
+                    ...c,
+                    worksheetID: insight.worksheetID,
+                    rangeName: insight.rangeName,
+                }
+            else return c
+        })
+        insight.selectedItems = insight.selectedItems
+            .map((i) => ({
+                measureName: i.columnName,
+                worksheetID: insight.worksheetID,
+                rangeName: insight.rangeName,
+            }))
+            .filter((i) => i.measureName)
+    }
+    if (!insight.metricsOrder) insight.metricsOrder = []
     // END temp backwards stuff
     if (!(insight.selectedDates instanceof Map))
         insight.selectedDates = new Map(Object.entries(insight.selectedDates));

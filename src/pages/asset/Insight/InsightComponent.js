@@ -4,7 +4,7 @@ import { ScoopTheme } from '@/styles/Style';
 import React, { useRef, useState, useEffect } from "react";
 import Image from "next/image";
 import { Box, IconButton, Menu, MenuItem, Typography } from "@mui/material";
-import _ from "lodash";
+import _, {clone, cloneDeep, isNumber} from "lodash";
 import {loadFromSavedInsight, fetchInsight} from '../../api/InsightAPI';
 import ChartState from "../../../utils/ChartState";
 import CaretRight from '../../../../public/icons/CaretRight.svg?url';
@@ -12,15 +12,15 @@ import CloseIcon from '../../../../public/icons/CloseIcon.svg?url';
 import CloseIconWhite from '../../../../public/icons/CloseIconWhite.svg?url';
 import {useApi} from "@/pages/api/api";
 import {ScoopLoader} from "@/components/ScoopLoader/ScoopLoader";
-import {getDefaultTheme, isLightColor, SORTING} from "@/utils/utils";
-
-const getTheme = (config, chartState) => {
-    if (config && config.themeID) {
-        let theme = chartState.getTheme(config.themeID);
-        if (theme) return theme;
-    }
-    return undefined;
-}
+import {getDefaultChartPreferences, isLightColor, SORTING} from "@/utils/utils";
+import {
+    AXIS_DEFAULT_VALUES, AXIS_TEXT_DEFAULT_VALUES,
+    BAR_DEFAULT_VALUES, GAUGE_DEFAULT_VALUES,
+    LEGEND_DEFAULT_VALUES, PIE_DEFAULT_VALUES, RADIAL_DEFAULT_VALUES,
+    TITLE_DEFAULT_VALUES
+} from "@/utils/styleConsts";
+import {KPI} from "@/components/KPI/KPI";
+import {ServerSideGrid} from "@/components/InsightsGrid/ServerSideGrid";
 
 const InsightComponent = ({
     token,
@@ -33,6 +33,7 @@ const InsightComponent = ({
     sendMessage,
     serverUpdate,
     screenshot,
+    urlPrompt,
     designID
 }) => {
 
@@ -55,9 +56,35 @@ const InsightComponent = ({
     const container = typeof window !== 'undefined' ?
         document.getElementById('scoop-element-container') :
         {offsetWidth: 0, offsetHeight: 0}
-    const theme = getTheme(config, chartState)
+    const [theme, setTheme] = useState('')
 
-    console.log(serverUpdate)
+    // Example of url prompts
+    // const array = [
+    //     {
+    //         attributeName: "Close Date",
+    //         operator: "GreaterThanOrEquals",
+    //         filterValue: {
+    //             values: [
+    //                 "2023-09-01"
+    //             ]
+    //         }
+    //     },
+    //     {
+    //         attributeName: "Close Date",
+    //         operator: "LessThanOrEquals",
+    //         filterValue: {
+    //             values: [
+    //                 "2024-08-31"
+    //             ]
+    //         }
+    //     }
+    // ]
+    //
+    // console.log(btoa(JSON.stringify(array)))
+
+    useEffect(() => {
+        if (workspaceMetadata) setTheme(getTheme())
+    }, [workspaceMetadata, chartState?.config.themeID])
 
     useEffect(() => {
         setLoading(true)
@@ -70,7 +97,7 @@ const InsightComponent = ({
                     chartState,
                     insightKey,
                     workspaceID,
-                    null,
+                    urlPrompt ? JSON.parse(atob(urlPrompt)) : null,
                     workspaceMetadata,
                     () => setLoading(false)
                 );
@@ -121,13 +148,34 @@ const InsightComponent = ({
         }
     }, [workspaceMetadata]);
 
+    const getTheme = () => {
+        const themeID = chartState?.config.themeID
+        if (themeID) {
+            if (themeID === 'defaultTheme') {
+                return {
+                    themeID: 'defaultTheme',
+                    themeName: 'Default theme',
+                    colorScheme: {
+                        backgroundColor: '#FFFFFF',
+                        colors: ScoopTheme.color,
+                        darkTheme: false,
+                    },
+                }
+            }
+            if (workspaceMetadata) {
+                let theme = workspaceMetadata.themes.find((t) => t.themeID === themeID)
+                if (theme) return theme
+            }
+        }
+        return undefined
+    }
+
     const updateInsight = (prompts) => {
         if (!hasFetched.current && insightKey && postData) {
             setLoading(true)
             hasFetched.current = true
             fetchInsight(insightKey, postData)
                 .then((result) => {
-                    //setInsightName(result.insightName)
                     loadFromSavedInsight(
                         result.savedObject,
                         setConfig,
@@ -231,8 +279,24 @@ const InsightComponent = ({
     };
 
     function validChart() {
-        if (!chartState) return false;
-        return chartState.series && chartState.series.length > 0 && ((chartState.result.dates && chartState.result.dates.length > 0) || chartState.series[0].data.length > 0);
+        if (config.view === 'kpi') return config.selectedItems.length > 0
+        if (
+            config.view === 'table' &&
+            (config.selectedTableColumns.length > 0 || config.selectedTableKpis.length > 0)
+        )
+            return true
+        if (
+            chartState.config.seriesType === 'scatter' &&
+            chartState.config.selectedItems &&
+            chartState.config.selectedItems?.length !== 2
+        )
+            return false
+        return (
+            chartState.series &&
+            chartState.series?.length > 0 &&
+            ((chartState.result.dates && chartState.result.dates?.length > 0) ||
+                chartState.series[0].data?.length > 0)
+        )
     }
 
     const getChartDrillItems = () => {
@@ -331,130 +395,353 @@ const InsightComponent = ({
     };
 
     const applyFontScale = (overrides, width, height) => {
-        if (overrides.title?.textStyle?.fontScaleFactor?.x && overrides.title.textStyle.fontScaleFactor?.y) {
-            overrides.title.textStyle.fontSize =
-                (overrides.title.textStyle.fontScaleFactor.x * width +
-                    overrides.title.textStyle.fontScaleFactor.y * height) / 2;
-        }
+        overrides.title.textStyle.fontSize =
+            (((overrides.title.textStyle.fontSize ?? TITLE_DEFAULT_VALUES.textStyle.fontSize) /
+                    overrides.dimensions.width) *
+                width +
+                ((overrides.title.textStyle.fontSize || TITLE_DEFAULT_VALUES.textStyle.fontSize) /
+                    overrides.dimensions.height) *
+                height) /
+            2
 
-        if (overrides.legend?.textStyle?.fontScaleFactor?.x && overrides.legend.textStyle.fontScaleFactor?.y) {
-            overrides.legend.textStyle.fontSize =
-                (overrides.legend.textStyle.fontScaleFactor.x * width +
-                    overrides.legend.textStyle.fontScaleFactor.y * height) / 2;
-        }
+        overrides.legend.textStyle.fontSize =
+            (((overrides.legend.textStyle.fontSize || LEGEND_DEFAULT_VALUES.textStyle.fontSize) /
+                    overrides.dimensions.width) *
+                width +
+                ((overrides.legend.textStyle.fontSize || LEGEND_DEFAULT_VALUES.textStyle.fontSize) /
+                    overrides.dimensions.height) *
+                height) /
+            2
 
-        if (overrides.xAxis?.axisLabel?.fontScaleFactor?.x && overrides.xAxis.axisLabel.fontScaleFactor?.y) {
-            overrides.xAxis.axisLabel.fontSize =
-                (overrides.xAxis.axisLabel.fontScaleFactor.x * width +
-                    overrides.xAxis.axisLabel.fontScaleFactor.y * height) / 2;
-        }
+        overrides.legend.itemSize =
+            (((overrides.legend.itemSize || LEGEND_DEFAULT_VALUES.itemSize) /
+                    overrides.dimensions.width) *
+                width +
+                ((overrides.legend.itemSize || LEGEND_DEFAULT_VALUES.itemSize) /
+                    overrides.dimensions.height) *
+                height) /
+            2
 
-        if (overrides.yAxis?.axisLabel?.fontScaleFactor?.x && overrides.yAxis.axisLabel.fontScaleFactor?.y) {
-            overrides.yAxis.axisLabel.fontSize =
-                (overrides.yAxis.axisLabel.fontScaleFactor.x * width +
-                    overrides.yAxis.axisLabel.fontScaleFactor.y * height) / 2;
-        }
+        overrides.pie.label.fontSize =
+            (((overrides.pie.label.fontSize || PIE_DEFAULT_VALUES.label.fontSize) /
+                    overrides.dimensions.width) *
+                width +
+                ((overrides.pie.label.fontSize || PIE_DEFAULT_VALUES.label.fontSize) /
+                    overrides.dimensions.height) *
+                height) /
+            2
 
-        if (overrides.xAxis?.nameTextStyle?.fontScaleFactor?.x && overrides.xAxis.nameTextStyle.fontScaleFactor?.y) {
-            overrides.xAxis.nameTextStyle.fontSize =
-                (overrides.xAxis.nameTextStyle.fontScaleFactor.x * width +
-                    overrides.xAxis.nameTextStyle.fontScaleFactor.y * height) / 2;
-        }
+        overrides.donut.label.fontSize =
+            (((overrides.donut.label.fontSize || PIE_DEFAULT_VALUES.label.fontSize) /
+                    overrides.dimensions.width) *
+                width +
+                ((overrides.donut.label.fontSize || PIE_DEFAULT_VALUES.label.fontSize) /
+                    overrides.dimensions.height) *
+                height) /
+            2
 
-        if (overrides.yAxis?.nameTextStyle?.fontScaleFactor?.x && overrides.yAxis.nameTextStyle.fontScaleFactor?.y) {
-            overrides.yAxis.nameTextStyle.fontSize =
-                (overrides.yAxis.nameTextStyle.fontScaleFactor.x * width +
-                    overrides.yAxis.nameTextStyle.fontScaleFactor.y * height) / 2;
+        overrides.radialBar.radiusAxis.axisLabel.fontSize =
+            (((overrides.radialBar.radiusAxis.axisLabel.fontSize ||
+                        RADIAL_DEFAULT_VALUES.radiusAxis.axisLabel.fontSize) /
+                    overrides.dimensions.width) *
+                width +
+                ((overrides.radialBar.radiusAxis.axisLabel.fontSize ||
+                        RADIAL_DEFAULT_VALUES.radiusAxis.axisLabel.fontSize) /
+                    overrides.dimensions.height) *
+                height) /
+            2
+
+        overrides.radialBar.label.fontSize =
+            (((overrides.radialBar.label.fontSize || RADIAL_DEFAULT_VALUES.label.fontSize) /
+                    overrides.dimensions.width) *
+                width +
+                ((overrides.radialBar.label.fontSize || RADIAL_DEFAULT_VALUES.label.fontSize) /
+                    overrides.dimensions.height) *
+                height) /
+            2
+
+        overrides.gauge.detail.fontSize =
+            (((overrides.gauge.detail.fontSize || GAUGE_DEFAULT_VALUES.detail.fontSize) /
+                    overrides.dimensions.width) *
+                width +
+                ((overrides.gauge.detail.fontSize || GAUGE_DEFAULT_VALUES.detail.fontSize) /
+                    overrides.dimensions.height) *
+                height) /
+            2
+
+        overrides.gauge.title.fontSize =
+            (((overrides.gauge.title.fontSize || GAUGE_DEFAULT_VALUES.title.fontSize) /
+                    overrides.dimensions.width) *
+                width +
+                ((overrides.gauge.title.fontSize || GAUGE_DEFAULT_VALUES.title.fontSize) /
+                    overrides.dimensions.height) *
+                height) /
+            2
+
+        overrides.gauge.axisLabel.fontSize =
+            (((overrides.gauge.axisLabel.fontSize || GAUGE_DEFAULT_VALUES.axisLabel.fontSize) /
+                    overrides.dimensions.width) *
+                width +
+                ((overrides.gauge.axisLabel.fontSize || GAUGE_DEFAULT_VALUES.axisLabel.fontSize) /
+                    overrides.dimensions.height) *
+                height) /
+            2
+
+        overrides.xAxis.forEach((axis) => {
+            axis.axisLabel.fontSize =
+                (((axis.axisLabel.fontSize || AXIS_TEXT_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.width) *
+                    width +
+                    ((axis.axisLabel.fontSize || AXIS_TEXT_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.height) *
+                    height) /
+                2
+
+            axis.nameTextStyle.fontSize =
+                (((axis.nameTextStyle.fontSize || AXIS_TEXT_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.width) *
+                    width +
+                    ((axis.nameTextStyle.fontSize || AXIS_TEXT_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.height) *
+                    height) /
+                2
+        })
+
+        overrides.yAxis.forEach((axis) => {
+            axis.axisLabel.fontSize =
+                (((axis.axisLabel.fontSize || AXIS_TEXT_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.width) *
+                    width +
+                    ((axis.axisLabel.fontSize || AXIS_TEXT_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.height) *
+                    height) /
+                2
+
+            axis.nameTextStyle.fontSize =
+                (((axis.nameTextStyle.fontSize || AXIS_TEXT_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.width) *
+                    width +
+                    ((axis.nameTextStyle.fontSize || AXIS_TEXT_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.height) *
+                    height) /
+                2
+        })
+    }
+
+    const applyLegendIconSizeTransformation = (option) => {
+        const size = option.legend.itemSize || 10
+        option.legend.itemWidth = size
+        option.legend.itemHeight = size
+        delete option.legend.itemSize
+    }
+
+    const ensureAxisOverrides = (optionAxis, overridesAxis, referenceAxis) => {
+        if (optionAxis.length > overridesAxis.length) {
+            optionAxis.forEach((_, i) => {
+                overridesAxis[i] = overridesAxis[i] || { ...referenceAxis[0] }
+            })
         }
     }
 
     const getOptionWithOverrides = () => {
+        const defaultTheme = JSON.parse(getDefaultChartPreferences())
         let option = _.cloneDeep(chartState.getOption())
         if (theme) option = _.cloneDeep(chartState.getOption(theme.themeID))
         let overrides = _.cloneDeep(config.styleOverrides)
+        let baseTheme = JSON.parse(getDefaultChartPreferences())
+
+        // Make sure that overrides axis length are up to date and match the option axis length
+        if (config.seriesType === 'bar') {
+            ensureAxisOverrides(option.yAxis, overrides.xAxis, overrides.xAxis)
+            ensureAxisOverrides(option.xAxis, overrides.yAxis, overrides.yAxis)
+        } else {
+            ensureAxisOverrides(option.yAxis, overrides.yAxis, overrides.yAxis)
+            ensureAxisOverrides(option.xAxis, overrides.xAxis, overrides.xAxis)
+        }
+
         if (theme && theme.chartPreferences) {
-            let preferences = typeof theme.chartPreferences === 'string' ? JSON.parse(theme.chartPreferences) : theme.chartPreferences
+            let preferences =
+                typeof theme.chartPreferences === 'string'
+                    ? JSON.parse(theme.chartPreferences)
+                    : theme.chartPreferences
+            //Convert to arrays for backwards compatibility
+            if (!Array.isArray(preferences.yAxis))
+                preferences.yAxis = cloneDeep([preferences.yAxis])
+            if (!Array.isArray(preferences.xAxis))
+                preferences.xAxis = cloneDeep([preferences.xAxis])
+            // Apply preferences style to each of the axes.
+            overrides.yAxis.forEach((axis, i) => {
+                if (preferences.yAxis[i])
+                    overrides.yAxis[i] = _.merge(
+                        _.cloneDeep(preferences.yAxis[i]),
+                        _.cloneDeep(axis)
+                    )
+                else
+                    overrides.yAxis[i] = _.merge(
+                        _.cloneDeep(preferences.yAxis[0]),
+                        _.cloneDeep(axis)
+                    )
+            })
+            overrides.xAxis.forEach((axis, i) => {
+                if (preferences.xAxis[i])
+                    overrides.xAxis[i] = _.merge(
+                        _.cloneDeep(preferences.xAxis[i]),
+                        _.cloneDeep(axis)
+                    )
+                else
+                    overrides.xAxis[i] = _.merge(
+                        _.cloneDeep(preferences.xAxis[0]),
+                        _.cloneDeep(axis)
+                    )
+            })
+            preferences = _.omit(preferences, 'xAxis')
+            preferences = _.omit(preferences, 'yAxis')
             overrides = _.merge(_.cloneDeep(preferences), _.cloneDeep(overrides))
         } else {
-            option = _.merge(_.cloneDeep(JSON.parse(getDefaultTheme())), option)
+            // Apply default theme to each of the axes.
+            overrides.yAxis.forEach(
+                (axis, i) =>
+                    (overrides.yAxis[i] = _.merge(_.cloneDeep(baseTheme.yAxis), _.cloneDeep(axis)))
+            )
+            overrides.xAxis.forEach(
+                (axis, i) =>
+                    (overrides.xAxis[i] = _.merge(_.cloneDeep(baseTheme.xAxis), _.cloneDeep(axis)))
+            )
+            baseTheme = _.omit(baseTheme, 'xAxis')
+            baseTheme = _.omit(baseTheme, 'yAxis')
+            overrides = _.merge(_.cloneDeep(baseTheme), _.cloneDeep(overrides))
         }
+
+        // remove position overrides if present (backwards comp)
+        overrides.xAxis.forEach((a) => {
+            if (a.position) delete a.position
+        })
+        overrides.yAxis.forEach((a) => {
+            if (a.position) delete a.position
+        })
+
         // remove axis for pie and donut
-        if (config.seriesType === 'pie' || config.seriesType === 'donut' || config.seriesType === 'gauge' || config.seriesType === 'radialBar') {
-            overrides.xAxis.show = false
-            overrides.yAxis.show = false
+        if (
+            config.seriesType === 'pie' ||
+            config.seriesType === 'donut' ||
+            config.seriesType === 'gauge' ||
+            config.seriesType === 'radialBar'
+        ) {
+            overrides.xAxis.forEach((axis) => (axis.show = false))
+            overrides.yAxis.forEach((axis) => (axis.show = false))
             overrides.legend.icon = 'none'
         }
+
+        overrides.yAxis.forEach((axis) => {
+            if (axis.show === undefined) axis.show = AXIS_DEFAULT_VALUES.show
+            if (axis.splitLine.show === undefined)
+                axis.splitLine.show = AXIS_DEFAULT_VALUES.splitLine.show
+            if (axis.splitLine.lineStyle.color === undefined)
+                axis.splitLine.lineStyle.color = AXIS_DEFAULT_VALUES.splitLine.lineStyle.color
+            if (axis.splitLine.lineStyle.type === undefined)
+                axis.splitLine.lineStyle.type = AXIS_DEFAULT_VALUES.splitLine.lineStyle.type
+            if (axis.splitLine.lineStyle.width === undefined)
+                axis.splitLine.lineStyle.width = AXIS_DEFAULT_VALUES.splitLine.lineStyle.width
+        })
+
+        // apply pie/donut configs (this has to be done before the font scale)
+        if (config.seriesType === 'donut') {
+            overrides.donut = _.merge(
+                JSON.parse(getDefaultChartPreferences()).donut,
+                overrides.donut
+            )
+            option.series.forEach((s, i) => {
+                option.series[i] = { ...s, ...overrides.donut }
+            })
+        } else {
+            overrides.pie = _.merge(JSON.parse(getDefaultChartPreferences()).pie, overrides.pie)
+            if (option.series.some((s) => s.type === 'pie')) {
+                option.series.forEach((s, i) => {
+                    option.series[i] = { ...s, ...overrides.pie }
+                })
+            }
+        }
+
         // apply font scale
         const height = container.offsetHeight
         const width = container.offsetWidth
-        applyFontScale(overrides, width, height);
-        //check x axis.show is undefined
-        if (overrides.xAxis.show === undefined) {
-            overrides.xAxis.show = true
-        }
-        //check y axis.show is undefined
-        if (overrides.yAxis.show === undefined) {
-            overrides.yAxis.show = true
-        }
-        // distribute axis configs
-        if ((Array.isArray(option.yAxis) && overrides.yAxis)) {
-            option.yAxis.forEach((axisObject, i) => {
-                option.yAxis[i] = { ...axisObject, ...overrides.yAxis }
-            })
-            overrides = _.omit(overrides, ['yAxis'])
-        } else {
-            if (config.seriesType === 'pictorialBar') option.yAxis = { ...option.yAxis, ...overrides.yAxis }
-        }
-        if (Array.isArray(option.xAxis) && overrides.xAxis) {
+        applyFontScale(overrides, width, height)
+
+        if (config.seriesType === 'bar') {
+            // Distributing the overrides to xAxis and yAxis for bar charts
             option.xAxis.forEach((axisObject, i) => {
-                option.xAxis[i] = { ...axisObject, ...overrides.xAxis }
+                option.xAxis[i] = { ...axisObject, ...overrides.yAxis[i] }
             })
-            overrides = _.omit(overrides, ['xAxis'])
+            option.yAxis.forEach((axisObject, i) => {
+                option.yAxis[i] = { ...axisObject, ...overrides.xAxis[i] }
+            })
         } else {
-            if (config.seriesType === 'pictorialBar') option.xAxis = { ...option.xAxis, ...overrides.xAxis }
+            // Distributing the overrides to xAxis and yAxis for every other charts
+            option.yAxis.forEach((axisObject, i) => {
+                option.yAxis[i] = _.merge(axisObject, overrides.yAxis[i])
+            })
+            option.xAxis.forEach((axisObject, i) => {
+                delete overrides.xAxis[i].name
+                option.xAxis[i] = _.merge(axisObject, overrides.xAxis[i])
+            })
         }
+
         // apply bar/waterfall configs
         if (config.seriesType === 'waterfall') {
             option.series.forEach((s, i) => {
                 if (s.name === 'positive') {
-                    option.series[i].itemStyle = { color: overrides.waterfall.upColor }
+                    option.series[i].itemStyle = {
+                        color: overrides.waterfall?.upColor || defaultTheme.waterfall.upColor,
+                    }
                     option.series[i].data[0] = {
                         ...option.series[i].data[0],
-                        itemStyle: { color: overrides.waterfall.startColor }
+                        itemStyle: {
+                            color:
+                                overrides.waterfall.startColor || defaultTheme.waterfall.startColor,
+                        },
                     }
                 }
                 if (s.name === 'negative') {
-                    option.series[i].itemStyle = { color: overrides.waterfall.downColor }
+                    option.series[i].itemStyle = {
+                        color: overrides.waterfall.downColor || defaultTheme.waterfall.downColor,
+                    }
                     const lastIndex = option.series[i].data.length - 1
                     option.series[i].data[lastIndex] = {
                         ...option.series[i].data[lastIndex],
-                        itemStyle: { color: overrides.waterfall.endColor }
+                        itemStyle: {
+                            color: overrides.waterfall.endColor || defaultTheme.waterfall.endColor,
+                        },
                     }
                 }
             })
         } else {
-            if (option.series.some(s => s.type === 'bar')) {
+            if (option.series.some((s) => s.type === 'bar')) {
                 option.series.forEach((s, i) => {
                     option.series[i] = { ...s, ...overrides.bar }
                 })
             }
         }
+
         // apply line configs
-        if (option.series.some(s => s.type === 'line')) {
+        if (option.series.some((s) => s.type === 'line')) {
             option.series.forEach((s, i) => {
                 option.series[i] = { ...s, ...overrides.line }
             })
         }
+
         if (config.seriesType === 'radialBar') {
-            overrides.radialBar = _.merge(JSON.parse(getDefaultTheme()).radialBar, overrides.radialBar)
+            overrides.radialBar = _.merge(
+                JSON.parse(getDefaultChartPreferences()).radialBar,
+                overrides.radialBar
+            )
             option = {
                 ...option,
                 angleAxis: {
                     ...overrides.radialBar.angleAxis,
-                    data: { ...chartState?.categoryAxisValues }
+                    data: { ...chartProperties?.categoryAxisValues },
                 },
                 polar: overrides.radialBar.polar,
-                radiusAxis: overrides.radialBar.radiusAxis
+                radiusAxis: overrides.radialBar.radiusAxis,
             }
             const showAsStacked = overrides.radialBar.stack
             option.series.forEach((s, i) => {
@@ -462,10 +749,9 @@ const InsightComponent = ({
                 option.series[i].coordinateSystem = 'polar'
                 option.series[i].type = 'bar'
                 option.series[i].label = {
-                    show: true,
                     position: 'middle',
                     formatter: '{b}: {c}',
-                    fontSize: 6
+                    ...overrides.radialBar.label,
                 }
                 option.series[i] = {
                     ...s,
@@ -475,94 +761,148 @@ const InsightComponent = ({
                 }
             })
         }
+
         // apply pictorial configs
         if (config.seriesType === 'pictorialBar') {
-            const xAxisCopy = _.cloneDeep(option.xAxis);
-            const yAxisCopy = _.cloneDeep(option.yAxis);
+            const xAxisCopy = _.cloneDeep(option.xAxis)
+            const yAxisCopy = _.cloneDeep(option.yAxis)
 
             if (overrides.pictorialBar.showAsBar) {
-                option.xAxis = Array.isArray(yAxisCopy) ? yAxisCopy : { ...yAxisCopy };
-                option.yAxis = Array.isArray(xAxisCopy) ? xAxisCopy : { ...xAxisCopy };
+                option.xAxis = yAxisCopy
+                option.yAxis = xAxisCopy
 
-                option.series.forEach(seriesItem => {
+                option.series.forEach((seriesItem) => {
                     if (seriesItem.yAxisIndex) {
-                        seriesItem.xAxisIndex = seriesItem.yAxisIndex;
-                        delete seriesItem.yAxisIndex;
+                        seriesItem.xAxisIndex = seriesItem.yAxisIndex
+                        delete seriesItem.yAxisIndex
                     }
-                });
+                })
             } else {
-                option.xAxis = Array.isArray(xAxisCopy) ? xAxisCopy : { ...xAxisCopy };
-                option.yAxis = Array.isArray(yAxisCopy) ? yAxisCopy : { ...yAxisCopy };
+                option.xAxis = xAxisCopy
+                option.yAxis = yAxisCopy
 
-                option.series.forEach(seriesItem => {
+                option.series.forEach((seriesItem) => {
                     if (seriesItem.xAxisIndex) {
-                        seriesItem.yAxisIndex = seriesItem.xAxisIndex;
-                        delete seriesItem.xAxisIndex;
+                        seriesItem.yAxisIndex = seriesItem.xAxisIndex
+                        delete seriesItem.xAxisIndex
                     }
-                });
-                option.yAxis.forEach((axisObject, i) => {
-                    option.yAxis[i] = { ...axisObject, ...overrides.pictorialBar.xAxis }
                 })
             }
             option.series.forEach((series, seriesIndex) => {
                 if (!overrides.pictorialBar.data[seriesIndex]) {
-                    overrides.pictorialBar.data[seriesIndex] = [];
+                    overrides.pictorialBar.data[seriesIndex] = []
                 }
 
-                series.barGap = overrides.pictorialBar.barGap;
-                series.barCategoryGap = overrides.pictorialBar.barCategoryGap;
+                series.barGap = overrides.pictorialBar.barGap
+                series.barCategoryGap = overrides.pictorialBar.barCategoryGap
 
                 series.data.forEach((d, i) => {
                     if (typeof d === 'number') {
-                        series.data[i] = Object.assign({ value: d }, overrides.pictorialBar.data[seriesIndex][i]);
+                        series.data[i] = Object.assign(
+                            { value: d },
+                            overrides.pictorialBar.data[seriesIndex][i]
+                        )
                     } else {
-                        series.data[i] = Object.assign({}, d, overrides.pictorialBar.data[seriesIndex][i]);
+                        series.data[i] = Object.assign(
+                            {},
+                            d,
+                            overrides.pictorialBar.data[seriesIndex][i]
+                        )
                     }
-                });
-            });
-        }
-        // apply pie/donut configs
-        if (config.seriesType === 'donut') {
-            overrides.donut = _.merge(JSON.parse(getDefaultTheme()).donut, overrides.donut)
-            option.series.forEach((s, i) => {
-                option.series[i] = { ...s, ...overrides.donut }
-            })
-        } else {
-            overrides.pie = _.merge(JSON.parse(getDefaultTheme()).pie, overrides.pie)
-            if (option.series.some(s => s.type === 'pie')) {
-                option.series.forEach((s, i) => {
-                    option.series[i] = { ...s, ...overrides.pie }
                 })
-            }
+            })
         }
+
+        // apply pie/donut configs
+        if (
+            (config.seriesType === 'donut' || config.seriesType === 'pie') &&
+            config.categoryAxis === 'Time'
+        ) {
+            option.series.forEach((series, i) => {
+                series.data.forEach((d, j) => {
+                    option.series[i].data[j] = {
+                        name: d.value[0],
+                        value: d.value[1],
+                    }
+                })
+            })
+        }
+
         if (config.seriesType === 'gauge') {
-            overrides.gauge = _.merge(JSON.parse(getDefaultTheme()).gauge, overrides.gauge)
+            overrides.gauge = _.merge(
+                JSON.parse(getDefaultChartPreferences()).gauge,
+                overrides.gauge
+            )
             overrides.tooltip.show = false
             overrides.legend.show = false
             option.series.forEach((s, i) => {
                 s.type = 'gauge'
-                if (overrides.gauge?.data && overrides.gauge.data[0]?.value && isNumber(overrides.gauge.data[0])) {
+                if (
+                    overrides.gauge?.data &&
+                    overrides.gauge.data[0]?.value &&
+                    isNumber(overrides.gauge.data[0].value)
+                ) {
                     option.series[i].data = overrides.gauge?.data
                 } else {
-                    const name = chartProperties?.categoryAxisValues[0] || ''
-                    let value = ((chartProperties?.series[0]?.data[0]?.value || chartProperties?.series[0]?.data[0]) * 100 / chartProperties?.series[0]?.data.reduce((a, b) => a + (b.value || b), 0)).toFixed(3);
+                    const name = chartState?.categoryAxisValues[0] || ''
+                    let value = (
+                        ((chartState?.series[0]?.data[0]?.value || chartState?.series[0]?.data[0]) * 100) /
+                        chartState?.series[0]?.data.reduce((a, b) => a + (b.value || b), 0)
+                    ).toFixed(3)
                     option.series[i].data = [{ value, name }]
                 }
-                option.series[i] = { ...s, ...overrides.gauge, data: option.series[i].data }
+                option.series[i] = {
+                    ...s,
+                    ...overrides.gauge,
+                    data: option.series[i].data,
+                }
             })
         }
 
-        if (config.seriesType === 'column' && chartState.categoryLegendData?.length > 1 && !config.stacked) {
-            let divisor = 1;
-            if (chartState.categoryAxisValues) divisor = chartState.categoryAxisValues?.length - 1;
-            if (chartState.categoryLegendData) divisor = divisor + chartState.categoryLegendData?.length - 1;
+        if (
+            (config.seriesType === 'bar' || config.seriesType === 'column') &&
+            chartState.categoryLegendData?.length > 1 &&
+            !config.stacked
+        ) {
+            let divisor = 1
+            if (chartState.categoryAxisValues)
+                divisor = chartState.categoryAxisValues?.length - 1
+            if (chartState.categoryLegendData)
+                divisor = divisor + chartState.categoryLegendData?.length - 1
             option.series.forEach((s, i) => {
-                let barWidth = (overrides.bar.barWidth?.split('%')[0] || BAR_DEFAULT_VALUES.barWidth) / divisor
+                let barWidth =
+                    (overrides.bar?.barWidth?.split('%')[0] || BAR_DEFAULT_VALUES.barWidth) /
+                    divisor
                 if (barWidth) {
-                    option.series[i] = {...s, ...overrides.bar, barWidth: `${barWidth}%`}
+                    option.series[i] = {
+                        ...s,
+                        ...overrides.bar,
+                        barWidth: `${barWidth}%`,
+                    }
                 }
             })
+        } else if (config.seriesTypeMap) {
+            const columnNames = Array.from(config.seriesTypeMap.entries())
+                .filter(([columnName, columnType]) => columnType === 'column')
+                .map(([columnName]) => columnName)
+
+            if (columnNames.length > 0) {
+                const divisor = columnNames.length
+                option.series.forEach((s, i) => {
+                    let barWidth =
+                        (overrides.bar?.barWidth?.split('%')[0] || BAR_DEFAULT_VALUES.barWidth) /
+                        divisor
+                    if (barWidth && columnNames.includes(s.name)) {
+                        option.series[i] = {
+                            ...s,
+                            ...overrides.bar,
+                            barWidth: `${barWidth}%`,
+                        }
+                    }
+                })
+            }
         }
+
         // apply max legends
         const max = overrides.legend.maxLegends || 10
         // TO-DO , Nesti/Pepe  Gabe put this try-catch to prevent page crash when data is undefined
@@ -572,30 +912,67 @@ const InsightComponent = ({
             //console.log("data undefined, e=", e)
         }
         // omit props we dont wanna merge
-        ['waterfall', 'bar', 'line', 'pie', 'donut', 'pictorialBar', 'gauge', 'radialBar', 'table'].forEach(key => {
-            overrides = _.omit(overrides, [key]);
-        });
+        [
+            'waterfall',
+            'bar',
+            'line',
+            'pie',
+            'donut',
+            'pictorialBar',
+            'gauge',
+            'radialBar',
+            'table',
+            'xAxis',
+            'yAxis',
+        ].forEach((key) => {
+            overrides = _.omit(overrides, [key])
+        })
         option = _.merge(option, overrides)
-        // apply sorting
-        if (config.categoryAxis !== 'Time' && option.series.length === 1 && config.sorting !== SORTING.NAT) {
+        applyLegendIconSizeTransformation(option)
+
+        // Apply data sorting
+        if (
+            config.categoryAxis !== 'Time' &&
+            config.sorting.sortOrder !== SORTING.NAT &&
+            config.sorting.sortBy &&
+            !['radial', 'gauge', 'donut', 'pie', 'line', 'area'].includes(config.seriesType)
+        ) {
             let axis = 'xAxis'
             if (config.seriesType === 'bar') axis = 'yAxis'
-            let tempData = []
-            if (config.seriesType === 'pictorialBar') {
-                tempData = option[axis].data.map((cat, i)=> ({cat: cat, val: option.series[0].data[i].value}))
-            } else {
-                tempData = option[axis].data.map((cat, i)=> ({cat: cat, val: option.series[0].data[i]}))
+            else if (
+                config.seriesType === 'pictorialBar' &&
+                config.styleOverrides.pictorialBar.showAsBar
+            )
+                axis = 'yAxis'
+
+            const categoryCopy = clone(option[axis][0].data)
+            const seriesCopy = clone(option.series)
+            const seriesIndex = option.series.findIndex((s) => s.name === config.sorting.sortBy)
+
+            if (seriesIndex === -1) return option
+
+            const tempData = option[axis][0].data.map((cat, i) => ({
+                cat: cat,
+                val:
+                    config.seriesType === 'pictorialBar'
+                        ? option.series[seriesIndex].data[i].value
+                        : option.series[seriesIndex].data[i],
+            }))
+
+            if (config.sorting.sortOrder === SORTING.ASC) {
+                tempData.sort((a, b) => a.val - b.val)
+            } else if (config.sorting.sortOrder === SORTING.DESC) {
+                tempData.sort((a, b) => b.val - a.val)
             }
-            if (config.sorting === SORTING.ASC) tempData.sort((a, b) => a.val - b.val)
-            if (config.sorting === SORTING.DESC) tempData.sort((a, b) => b.val - a.val)
-            option[axis].data = tempData.map(d => d.cat)
-            if (config.seriesType === 'pictorialBar') {
-                option.series[0].data = tempData.map((d, i) => (
-                    {value: d.val, name: option[axis].data[i]}
-                ))
-            } else {
-                option.series[0].data = tempData.map(d => d.val)
-            }
+
+            option.series.forEach((s, i) => {
+                s.data = tempData.map((d) => {
+                    const originalIndex = categoryCopy.indexOf(d.cat)
+                    return seriesCopy[i].data[originalIndex]
+                })
+            })
+
+            option[axis][0].data = tempData.map((d) => d.cat)
         }
         return option
     }
@@ -626,6 +1003,64 @@ const InsightComponent = ({
         } else {
             return 'black'
         }
+    }
+
+    const renderInsight = () => {
+        switch (config.view) {
+            case 'table':
+                return (
+                    <ServerSideGrid
+                        handleMenuClick={handleMenuClick}
+                        config={config}
+                        setConfig={setConfig}
+                        container={container}
+                        server={server}
+                        clickable={true}
+                        prompts={activePrompts}
+                        theme={theme}
+                        screenshot={screenshot}
+                    />
+                )
+            case 'chart':
+                return (
+                    <ReactECharts
+                        option={getOptionWithOverrides()}
+                        notMerge={true}
+                        lazyUpdate={true}
+                        style={{height: '100%', width: '100%'}}
+                        theme={ScoopTheme}
+                        onEvents={onEvents}
+                    />
+                )
+            case 'kpi':
+                return (
+                    <Box sx={{ display: 'flex', width: '100%', height: '100%' }}>
+                        <KPI
+                            config={config}
+                            setConfig={setConfig}
+                            server={server}
+                            theme={theme}
+                            container={container}
+                        />
+                    </Box>
+                )
+        }
+    }
+
+    const renderNoData = () => {
+        return (
+            <Box
+                sx={{
+                    height: '100%',
+                    width: '100%',
+                    display: 'grid',
+                    placeContent: 'center',
+                    color: theme?.colorScheme?.darkTheme ? 'white' : 'black',
+                }}
+            >
+                <Typography className={'inter'}>No data found for current configuration</Typography>
+            </Box>
+        )
     }
 
     return (
@@ -687,17 +1122,7 @@ const InsightComponent = ({
                     loading ?
                         <div style={{width: '100%', height: '100%', display: 'grid', placeContent: 'center'}}>
                             <ScoopLoader size={container.offsetWidth * 0.1} />
-                        </div> : (
-                            validChart() &&
-                            <ReactECharts
-                                style={{height: '100%', width: '100%'}}
-                                option={getOptionWithOverrides()}
-                                notMerge={true}
-                                lazyUpdate={true}
-                                theme={ScoopTheme}
-                                onEvents={onEvents}
-                            />
-                        )
+                        </div> : (validChart() ? renderInsight() : renderNoData())
                 }
             </Box>
             <Menu

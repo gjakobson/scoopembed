@@ -162,8 +162,6 @@ const PromptComponent = ({promptProps = {}, workspaceMetadata, token, onPromptCh
         singleValueDebounce(value)
     }
 
-    console.log(multiOpen)
-
     const getPromptContent = () => {
         if ((promptProps.dataSourceId || (promptProps.worksheetId && promptProps.rangeName)) && promptProps.fieldName && promptProps.type) {
             switch (promptProps.type) {

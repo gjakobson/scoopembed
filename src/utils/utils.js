@@ -6,11 +6,10 @@ export const SORTING = {
     NAT: 'natural',
 }
 
-export const getDefaultTheme = (darkTheme) => {
-    const themeString = JSON.stringify({...CHART_PREFERENCES_DEFAULT_VALUES})
-    if (darkTheme) {
-        return themeString.replaceAll('#6E7079', '#FFFFFF')
-    }
+export const getDefaultChartPreferences = (darkTheme) => {
+    const themeString = JSON.stringify({ ...CHART_PREFERENCES_DEFAULT_VALUES })
+    if (darkTheme)
+        return themeString.replaceAll('#6E7079', '#FFFFFF').replaceAll('#000000FF', '#FFFFFF')
     return themeString
 }
 
@@ -21,4 +20,8 @@ export const isLightColor = (color) => {
     const c_b = parseInt(hex.substring(4, 4 + 2), 16);
     const brightness = ((c_r * 299) + (c_g * 587) + (c_b * 114)) / 1000;
     return brightness > 155
+}
+
+export const propExistsOnObject = (override, prop) => {
+    return override && override[prop] !== undefined
 }
