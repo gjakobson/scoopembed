@@ -974,6 +974,12 @@ const InsightComponent = ({
 
             option[axis][0].data = tempData.map((d) => d.cat)
         }
+        if (option.title.top === '0%' && (screenshot || urlPrompt)) {
+            option.title.top = '5%'
+        }
+        if (option.legend.top === 'bottom' && (screenshot || urlPrompt)) {
+            option.legend.top = '95%'
+        }
         return option
     }
 
@@ -1117,7 +1123,7 @@ const InsightComponent = ({
                     }
                 </Box>
             }
-            <Box sx={{width: '100%', height: '100%', backgroundColor: getScreenshotBgColor(), padding: screenshot ? '20px' : 0}}>
+            <Box sx={{width: '100%', height: '100%', backgroundColor: getScreenshotBgColor()}}>
                 {
                     loading ?
                         <div style={{width: '100%', height: '100%', display: 'grid', placeContent: 'center'}}>
