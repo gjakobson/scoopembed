@@ -988,7 +988,7 @@ const InsightComponent = ({
             if (theme?.colorScheme?.backgroundColor === '#00000000') {
                 if (theme.colorScheme.darkTheme) return 'black'
                 else return 'white'
-            } else if (config.styleOverrides.backgroundColor === '#00000000') {
+            } else if (config.styleOverrides?.backgroundColor === '#00000000') {
                 let color = '#FFFFFF'
                 const textColor = config.styleOverrides.xAxis?.axisLabel?.color
                 if (textColor) color = textColor.length > 7 ? textColor.slice(-2) : textColor
@@ -1077,7 +1077,7 @@ const InsightComponent = ({
                     className={styles.drillingBreadcrumbsContainer}
                     sx={{
                         backgroundColor: theme?.colorScheme?.backgroundColor ||
-                            config.styleOverrides.backgroundColor ||
+                            config.styleOverrides?.backgroundColor ||
                             'white'
                     }}
                 >
