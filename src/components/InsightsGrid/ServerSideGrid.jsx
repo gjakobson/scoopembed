@@ -172,7 +172,7 @@ export const ServerSideGrid = ({
     const containerStyle = useMemo(
         () => ({
             width: '100%',
-            height: screenshot ? ((container.offsetHeight) - 40) : (container.offsetHeight || '100%'),
+            height: container.offsetHeight || '100%',
             display: 'flex',
             flexDirection: 'column',
             alignItems: 'flex-start'
@@ -237,7 +237,7 @@ export const ServerSideGrid = ({
                 ? e.style.setProperty('--grid-border', 'none')
                 : e.style.setProperty('--grid-border', '1px solid #E6E4E6')
         }
-    }, [config])
+    }, [config, theme])
 
     const autoSizeAll = () => {
         const allColumnIds = gridRef.current?.api.getColumns().map((column) => column.getId())
