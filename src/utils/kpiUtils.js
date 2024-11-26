@@ -157,7 +157,7 @@ export const getKPIStyles = (theme, config, container) => {
     const containerStyles = {
         padding: getNumericValue(overrides, chartPreferences, defaultTheme, 'padding'),
         backgroundColor:
-            overrides.backgroundColor || theme?.colorScheme.backgroundColor || '#FFFFFFFF',
+            overrides?.backgroundColor || theme?.colorScheme?.backgroundColor || '#FFFFFFFF',
         borderRadius: getNumericValue(overrides, chartPreferences, defaultTheme, 'borderRadius'),
         boxShadow: '0 -2px 8px 0 rgba(20, 9, 42, 0.10)',
     }
