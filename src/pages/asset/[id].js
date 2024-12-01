@@ -44,7 +44,7 @@ const Asset = ({id, userID, workspaceID, elementParams, designID, invite, screen
     const queryParam = `${userID}:${workspaceID}:${elementParams}:${designID}:${screenshot}${invite ? `:${invite}` : ''}`
 
     return (
-        <div id={'scoop-element-container'} style={{height: '100vh', width: '100vw'}}>
+        <div id={'scoop-element-container'} style={{height: '95vh', width: '95vw'}}>
             <Head>
                 <title>Scoop Analytics</title>
                 <meta name="description" content="Beautiful, easy data visualization and storytelling"/>
