@@ -23,6 +23,7 @@ import {KPI} from "@/components/KPI/KPI";
 import {ServerSideGrid} from "@/components/InsightsGrid/ServerSideGrid";
 
 const InsightComponent = ({
+    isDev,
     token,
     workspaceID,
     userID,
@@ -38,7 +39,7 @@ const InsightComponent = ({
 }) => {
 
     const itemID = `${userID}-${workspaceID}-${insightKey}`
-    const { postData } = useApi(token, userID, workspaceID);
+    const { postData } = useApi(isDev, token, userID, workspaceID);
     const [config, setConfig] = useState(ChartState.getDefaultConfig());
     const [chartState, setChartState] = useState(new ChartState(server, config, setConfig));
     const hasFetched = useRef(false);

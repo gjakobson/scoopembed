@@ -1,21 +1,30 @@
 // /src/pages/api/Server.js
 export class Server {
-    constructor(workspaceID, userID, token) {
+    constructor(workspaceID, userID, token, isDev) {
         this.workspaceID = workspaceID;
         this.userID = userID;
         this.token = token;
+        this.isDev = isDev === "isDev=true" ? true : false;
     }
 
     async postData(action = {}, handler, object, errorHandler, sheetServer) {
         action.workspaceID = this.workspaceID;
         action.userID = this.userID;
 
+        console.log("isDev", this.isDev);   
+
         // if the length of the token is < 100, it's not a real jwt token but rather a guest token
         const API_ENDPOINT = sheetServer ?
             "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserver" :
             "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapi"
         
-            const useAPIURL= (this.token?.length < 100 && !sheetServer) ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : (this.token?.length < 100 && sheetServer) ? API_ENDPOINT.replace("sheetserver","guest-sheetserver") :API_ENDPOINT;
+            let useAPIURL= (this.token?.length < 100 && !sheetServer) ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : (this.token?.length < 100 && sheetServer) ? API_ENDPOINT.replace("sheetserver","guest-sheetserver") :API_ENDPOINT;
+
+            if (this.isDev) {
+                useAPIURL = useAPIURL.replace("mobileapi", "mobileapidev");
+                useAPIURL = useAPIURL.replace("sheetserver", "sheetserverdev");
+            }
+
 
         // const url = this.token ? "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/guest-mobileapidev" : "http://localhost:8080/app/scoop";
 
@@ -65,8 +74,13 @@ export class Server {
 
         const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserver" 
     
-        const useAPIURL= (this.token?.length < 100) ? API_ENDPOINT.replace("sheetserver","guest-sheetserver") :API_ENDPOINT;
+        let useAPIURL= (this.token?.length < 100) ? API_ENDPOINT.replace("sheetserver","guest-sheetserver") :API_ENDPOINT;
 
+
+        if (this.isDev) {
+            useAPIURL = useAPIURL.replace("mobileapi", "mobileapidev");
+            useAPIURL = useAPIURL.replace("sheetserver", "sheetserverdev");
+        }
 
 
         const response = await fetch(useAPIURL, {
@@ -102,8 +116,13 @@ export class Server {
         action.userID = this.userID;
 
         const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/mobileapi"
-        const useAPIURL= (this.token?.length < 100 && !sheetServer) ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : (this.token?.length < 100 && sheetServer) ? API_ENDPOINT.replace("sheetserver","guest-sheetserver") :API_ENDPOINT;
+        let useAPIURL= (this.token?.length < 100 && !sheetServer) ? API_ENDPOINT.replace("mobileapi","guest-mobileapi") : (this.token?.length < 100 && sheetServer) ? API_ENDPOINT.replace("sheetserver","guest-sheetserver") :API_ENDPOINT;
 
+
+        if (this.isDev) {
+            useAPIURL = useAPIURL.replace("mobileapi", "mobileapidev");
+            useAPIURL = useAPIURL.replace("sheetserver", "sheetserverdev");
+        }
 
         // const url = this.token ? API_URL : "http://localhost:8080/app/scoop";
 

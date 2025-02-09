@@ -14,7 +14,8 @@ const PromptWrapperComponent = ({
                                     userID,
                                     designID,
                                     sendMessage,
-                                    socketConnected
+                                    socketConnected,
+                                    isDev
                                 }) => {
 
     const container = typeof window !== 'undefined' ? document.getElementById('scoop-element-container') : {
@@ -22,7 +23,7 @@ const PromptWrapperComponent = ({
         offsetHeight: 0
     }
     const itemID = `${userID}-${workspaceID}-${canvasID}`
-    const {postData} = useApi(token, userID, workspaceID);
+    const {postData} = useApi(isDev, token, userID, workspaceID);
     const [prompts, setPrompts] = useState([]);
     const [loading, setLoading] = useState(true);
 

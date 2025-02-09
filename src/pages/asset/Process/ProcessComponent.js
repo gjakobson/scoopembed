@@ -11,14 +11,14 @@ import {ScoopTheme} from "@/styles/Style";
 import {FilterGenerator} from "@/utils/FilterGenerator";
 import {isLightColor} from "@/utils/utils";
 
-const ProcessComponent = ({ workspaceID, userID, token, processName, workspaceMetadata, screenshot, server }) => {
+const ProcessComponent = ({ isDev, workspaceID, userID, token, processName, workspaceMetadata, screenshot, server }) => {
 
     const apiPath = token?.length < 100 ? 'guest-ui_information' : 'ui_information'
     const container = typeof window !== 'undefined' ?
         document.getElementById('scoop-element-container') :
         {offsetWidth: 0, offsetHeight: 0}
     const { postData: postUIInformationCall } = useApi(
-        token, userID, workspaceID, `https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/${apiPath}`
+        isDev, token, userID, workspaceID, `https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/${apiPath}`
     )
     const [linkColor, setLinkColor] = useState('#314656')
     const [backgroundColor, setBackgroundColor] = useState(null)

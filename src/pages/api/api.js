@@ -1,10 +1,16 @@
 // api.js
 
-export const useApi = (token, userID, workspaceID, otherURL) => {
+export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
 
     // if the length of the token is < 100, it's not a real jwt token but rather a guest token
     const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserver"
-    const useAPIURL = token?.length < 100 ? API_ENDPOINT.replace("sheetserver", "guest-sheetserver") : API_ENDPOINT;
+    let useAPIURL = token?.length < 100 ? API_ENDPOINT.replace("sheetserver", "guest-sheetserver") : API_ENDPOINT;
+
+    if (isDev) {
+        useAPIURL = useAPIURL.replace("mobileapi", "mobileapidev");
+        useAPIURL = useAPIURL.replace("sheetserver", "sheetserverdev");
+    }
+
 
     const postData = async (action) => {
         if (Array.isArray(action)) {
