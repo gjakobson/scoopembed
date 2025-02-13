@@ -544,6 +544,76 @@ const InsightComponent = ({
         }
     }
 
+    const applyColumnResize = (option, overrides) => {
+        if (
+            (config.seriesType === 'bar' || config.seriesType === 'column') &&
+            chartState.categoryLegendData?.length > 1
+        ) {
+            let divisor = 1
+            if (chartState.categoryAxisValues > 1 && !config.stacked)
+                divisor = chartState.categoryAxisValues?.length - 1
+            if (chartState.categoryLegendData && !config.stacked)
+                divisor = divisor + chartState.categoryLegendData?.length - 1
+            if (config.selectedItems.length > 1 && config.stacked) {
+                const uniqueSeries = _.uniqBy(config.selectedItems, 'kpi')
+                divisor = uniqueSeries.length
+            }
+            option.series.forEach((s, i) => {
+                let barWidth =
+                    (overrides.bar?.barWidth?.split('%')[0] || BAR_DEFAULT_VALUES.barWidth) /
+                    divisor
+                if (barWidth) {
+                    option.series[i] = {
+                        ...s,
+                        ...overrides.bar,
+                        barWidth: `${barWidth}%`,
+                    }
+                }
+            })
+        } else if (config.seriesTypeMap.size > 0) {
+            const columnNames = Array.from(config.seriesTypeMap.entries())
+                .filter(
+                    ([columnName, columnType]) => columnType === 'bar' || columnType === 'column'
+                )
+                .map(([columnName]) => columnName)
+            if (columnNames.length > 0) {
+                const divisor = columnNames.length
+                option.series.forEach((s, i) => {
+                    let barWidth =
+                        (overrides.bar?.barWidth?.split('%')[0] || BAR_DEFAULT_VALUES.barWidth) /
+                        divisor
+                    if (barWidth && columnNames.includes(s.name)) {
+                        option.series[i] = {
+                            ...s,
+                            ...overrides.bar,
+                            barWidth: `${barWidth}%`,
+                        }
+                    }
+                })
+            }
+        }
+    }
+
+    const dataContainsNegatives = (option) => {
+        return option.series.some((s) =>
+            s.data.some((d) => {
+                if (typeof d === 'number') {
+                    return d < 0
+                } else if (d && Array.isArray(d) && d.length > 1) {
+                    return d[1] < 0
+                } else if (typeof d === 'object' && d !== null) {
+                    return d.value < 0
+                }
+                return false
+            })
+        )
+    }
+
+    const adjustBorderRadius = (radius) => {
+        const tempRadius = [...radius]
+        return [tempRadius[2], tempRadius[0], tempRadius[1], tempRadius[3]]
+    }
+
     const getOptionWithOverrides = () => {
         const defaultTheme = JSON.parse(getDefaultChartPreferences())
         let option = _.cloneDeep(chartState.getOption())
@@ -612,6 +682,12 @@ const InsightComponent = ({
             baseTheme = _.omit(baseTheme, 'yAxis')
             overrides = _.merge(_.cloneDeep(baseTheme), _.cloneDeep(overrides))
         }
+        if (config.seriesType === 'bar') {
+            let radius = overrides.bar?.itemStyle?.borderRadius || [5, 5, 0, 0]
+            if (overrides.bar?.itemStyle?.borderRadius) {
+                overrides.bar.itemStyle.borderRadius = adjustBorderRadius(radius)
+            }
+        }
 
         // remove position overrides if present (backwards comp)
         overrides.xAxis.forEach((a) => {
@@ -631,6 +707,18 @@ const InsightComponent = ({
             overrides.xAxis.forEach((axis) => (axis.show = false))
             overrides.yAxis.forEach((axis) => (axis.show = false))
             overrides.legend.icon = 'none'
+            option.tooltip.trigger = 'item'
+            if (overrides.grid?.tooltip?.axisPointer) {
+                overrides.grid.tooltip.trigger = 'item'
+            }
+        } else if (
+            config.stacked &&
+            (config.seriesType === 'bar' || config.seriesType === 'column')
+        ) {
+            option.tooltip.trigger = 'item'
+            if (overrides.grid?.tooltip?.axisPointer) {
+                overrides.grid.tooltip.trigger = 'item'
+            }
         }
 
         overrides.yAxis.forEach((axis) => {
@@ -676,6 +764,12 @@ const InsightComponent = ({
             option.yAxis.forEach((axisObject, i) => {
                 option.yAxis[i] = { ...axisObject, ...overrides.xAxis[i] }
             })
+            if (option.series.some((s) => s.yAxisIndex !== undefined)) {
+                option.series.forEach((s, i) => {
+                    s.xAxisIndex = s.yAxisIndex
+                    delete s.yAxisIndex
+                })
+            }
         } else {
             // Distributing the overrides to xAxis and yAxis for every other charts
             option.yAxis.forEach((axisObject, i) => {
@@ -685,6 +779,12 @@ const InsightComponent = ({
                 delete overrides.xAxis[i].name
                 option.xAxis[i] = _.merge(axisObject, overrides.xAxis[i])
             })
+            if (option.series.some((s) => s.xAxisIndex !== undefined)) {
+                option.series.forEach((s, i) => {
+                    s.yAxisIndex = s.xAxisIndex
+                    delete s.xAxisIndex
+                })
+            }
         }
 
         // apply bar/waterfall configs
@@ -860,48 +960,62 @@ const InsightComponent = ({
             })
         }
 
-        if (
-            (config.seriesType === 'bar' || config.seriesType === 'column') &&
-            chartState.categoryLegendData?.length > 1 &&
-            !config.stacked
-        ) {
-            let divisor = 1
-            if (chartState.categoryAxisValues)
-                divisor = chartState.categoryAxisValues?.length - 1
-            if (chartState.categoryLegendData)
-                divisor = divisor + chartState.categoryLegendData?.length - 1
-            option.series.forEach((s, i) => {
-                let barWidth =
-                    (overrides.bar?.barWidth?.split('%')[0] || BAR_DEFAULT_VALUES.barWidth) /
-                    divisor
-                if (barWidth) {
-                    option.series[i] = {
-                        ...s,
-                        ...overrides.bar,
-                        barWidth: `${barWidth}%`,
+        applyColumnResize(option, overrides)
+
+        //Remove radius for bar or column charts if they are stacked
+        if (config.stacked && (config.seriesType === 'bar' || config.seriesType === 'column')) {
+            const stacks = {}
+
+            option.series.forEach((series, i) => {
+                const stackName = series.stack || `stack_${i}`
+                if (!stacks[stackName]) stacks[stackName] = []
+
+                const hasValidData = Array.isArray(series.data)
+                    ? series.data.some((d) => d !== 0 && d !== null)
+                    : series.data !== 0 && series.data !== null
+
+                if (hasValidData) stacks[stackName].push(series)
+            })
+
+            Object.values(stacks).forEach((stackSeries) => {
+                const radiusSeries = []
+                for (let i = 0; i < stackSeries[0]?.data.length; i++) {
+                    let lastValidIndex = -1
+                    stackSeries.forEach((series, j) => {
+                        const value = Array.isArray(series.data[i])
+                            ? series.data[i][1]
+                            : series.data[i]
+                        if (value !== 0 && value !== null) {
+                            lastValidIndex = j
+                        }
+                    })
+                    if (lastValidIndex !== -1) {
+                        radiusSeries.push({
+                            data: i,
+                            series: lastValidIndex,
+                        })
                     }
                 }
-            })
-        } else if (config.seriesTypeMap) {
-            const columnNames = Array.from(config.seriesTypeMap.entries())
-                .filter(([columnName, columnType]) => columnType === 'column')
-                .map(([columnName]) => columnName)
 
-            if (columnNames.length > 0) {
-                const divisor = columnNames.length
-                option.series.forEach((s, i) => {
-                    let barWidth =
-                        (overrides.bar?.barWidth?.split('%')[0] || BAR_DEFAULT_VALUES.barWidth) /
-                        divisor
-                    if (barWidth && columnNames.includes(s.name)) {
-                        option.series[i] = {
-                            ...s,
-                            ...overrides.bar,
-                            barWidth: `${barWidth}%`,
+                stackSeries.forEach((series, index) => {
+                    series.data = series.data.map((d, i) => {
+                        const isTop = radiusSeries.some((r) => r.data === i && r.series === index)
+                        const value = typeof d === 'object' ? d?.value || d : d
+                        const itemStyle = isTop
+                            ? {
+                                borderRadius: overrides.bar?.itemStyle?.borderRadius || [
+                                    5, 5, 0, 0,
+                                ],
+                            }
+                            : { borderRadius: [0, 0, 0, 0] }
+
+                        return {
+                            value,
+                            itemStyle,
                         }
-                    }
+                    })
                 })
-            }
+            })
         }
 
         // apply max legends
@@ -929,52 +1043,72 @@ const InsightComponent = ({
             overrides = _.omit(overrides, [key])
         })
         option = _.merge(option, overrides)
+
         applyLegendIconSizeTransformation(option)
 
-        // Apply data sorting
-        if (
-            config.categoryAxis !== 'Time' &&
-            config.sorting.sortOrder !== SORTING.NAT &&
-            config.sorting.sortBy &&
-            !['radial', 'gauge', 'donut', 'pie', 'line', 'area'].includes(config.seriesType)
-        ) {
-            let axis = 'xAxis'
-            if (config.seriesType === 'bar') axis = 'yAxis'
-            else if (
-                config.seriesType === 'pictorialBar' &&
-                config.styleOverrides.pictorialBar.showAsBar
-            )
-                axis = 'yAxis'
-
-            const categoryCopy = clone(option[axis][0].data)
-            const seriesCopy = clone(option.series)
-            const seriesIndex = option.series.findIndex((s) => s.name === config.sorting.sortBy)
-
-            if (seriesIndex === -1) return option
-
-            const tempData = option[axis][0].data.map((cat, i) => ({
-                cat: cat,
-                val:
-                    config.seriesType === 'pictorialBar'
-                        ? option.series[seriesIndex].data[i].value
-                        : option.series[seriesIndex].data[i],
-            }))
-
-            if (config.sorting.sortOrder === SORTING.ASC) {
-                tempData.sort((a, b) => a.val - b.val)
-            } else if (config.sorting.sortOrder === SORTING.DESC) {
-                tempData.sort((a, b) => b.val - a.val)
-            }
-
-            option.series.forEach((s, i) => {
-                s.data = tempData.map((d) => {
-                    const originalIndex = categoryCopy.indexOf(d.cat)
-                    return seriesCopy[i].data[originalIndex]
+        if (dataContainsNegatives(option)) {
+            const axis = config.seriesType === 'bar' ? 'xAxis' : 'yAxis'
+            option[axis].forEach((axis) => {
+                axis.min = function (value) {
+                    const absMax = Math.min(Math.abs(value.min), Math.abs(value.max))
+                    return -Math.ceil(absMax)
+                }
+                axis.max = function (value) {
+                    const absMax = Math.max(Math.abs(value.min), Math.abs(value.max))
+                    return Math.ceil(absMax)
+                }
+            })
+            option.series.forEach((s) => {
+                const defaultRadius = s.itemStyle?.borderRadius || [5, 5, 0, 0]
+                s.data = s.data.map((d) => {
+                    let value
+                    if (Array.isArray(d)) {
+                        value = d[1]
+                    } else if (typeof d === 'object' && d !== null) {
+                        value = d.value
+                    } else {
+                        value = d
+                    }
+                    const adjustedRadius = [...defaultRadius]
+                    if (value < 0) {
+                        const tempRadius = [...defaultRadius]
+                        if (config.seriesType === 'bar') {
+                            adjustedRadius[0] = tempRadius[1]
+                            adjustedRadius[3] = tempRadius[2]
+                            adjustedRadius[1] = tempRadius[0]
+                            adjustedRadius[2] = tempRadius[3]
+                        } else {
+                            adjustedRadius[0] = tempRadius[2]
+                            adjustedRadius[1] = tempRadius[3]
+                            adjustedRadius[2] = tempRadius[0]
+                            adjustedRadius[3] = tempRadius[1]
+                        }
+                    }
+                    return {
+                        value: d,
+                        itemStyle: {
+                            borderRadius: adjustedRadius,
+                        },
+                    }
                 })
             })
-
-            option[axis][0].data = tempData.map((d) => d.cat)
         }
+
+        // fix sorting for bar charts
+        if (
+            config.sortColumns.some((sortingOption) =>
+                ['asc', 'desc'].includes(sortingOption.order)
+            ) &&
+            config.seriesType === 'bar'
+        ) {
+            option.series.forEach((series) => {
+                series.data = series.data.toReversed()
+            })
+            option.yAxis.forEach((axis) => {
+                axis.data = axis.data.toReversed()
+            })
+        }
+
         if (option.title.top === '0%' && (screenshot || urlPrompt)) {
             option.title.top = '5%'
         }
@@ -1072,6 +1206,14 @@ const InsightComponent = ({
 
     return (
         <>
+            <Box sx={{width: '100%', height: '100%', backgroundColor: getScreenshotBgColor()}}>
+                {
+                    loading ?
+                        <div style={{width: '100%', height: '100%', display: 'grid', placeContent: 'center'}}>
+                            <ScoopLoader size={container.offsetWidth * 0.1} />
+                        </div> : (validChart() ? renderInsight() : renderNoData())
+                }
+            </Box>
             {
                 drillingHistory.length > 0 &&
                 <Box
@@ -1124,14 +1266,6 @@ const InsightComponent = ({
                     }
                 </Box>
             }
-            <Box sx={{width: '100%', height: '100%', backgroundColor: getScreenshotBgColor()}}>
-                {
-                    loading ?
-                        <div style={{width: '100%', height: '100%', display: 'grid', placeContent: 'center'}}>
-                            <ScoopLoader size={container.offsetWidth * 0.1} />
-                        </div> : (validChart() ? renderInsight() : renderNoData())
-                }
-            </Box>
             <Menu
                 id={'basic-menu'}
                 anchorEl={anchorEl}

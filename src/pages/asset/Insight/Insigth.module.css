@@ -1,4 +1,7 @@
 .drillingBreadcrumbsContainer {
+    position: absolute;
+    top: 0;
+    left: 0;
     height: 15px;
     width: 100%;
     display: flex;

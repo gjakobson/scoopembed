@@ -45,7 +45,7 @@ const Asset = ({ id, userID, workspaceID, elementParams, designID, invite, scree
     const queryParam = `${userID}:${workspaceID}:${elementParams}:${designID}:${screenshot}${invite ? `:${invite}` : ''}${isDev ? `:${isDev}` : ''}`
 
     return (
-        <div id={'scoop-element-container'} style={{ height: '95vh', width: '95vw' }}>
+        <div id={'scoop-element-container'} style={{ height: '100vh', width: '100vw' }}>
             <Head>
                 <title>Scoop Analytics</title>
                 <meta name="description" content="Beautiful, easy data visualization and storytelling" />
@@ -95,7 +95,7 @@ const AuthenticatedContent = withAuth(({
     const [server, setServer] = useState(new Server(workspaceID, userID, token, isDev));
     const { sendMessage, lastMessage, readyState } = useWebSocket('wss://yf8adv3utf.execute-api.us-west-2.amazonaws.com/production/', { shouldReconnect: () => true })
 
-    console.log('version 0.0.9')
+    console.log('version 1.0.0')
 
     useEffect(() => {
         if (invite) {

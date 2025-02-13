@@ -327,6 +327,8 @@ export default class ChartState {
             categoryAxis,
             timeRange,
             view,
+            sortColumns,
+            displayRows,
         } = config
         let metrics = []
         for (let i = 0; i < selectedItems?.length; i++) {
@@ -375,6 +377,7 @@ export default class ChartState {
                 metrics: metrics,
                 period: period,
                 categoryAxis: categoryAxis,
+                sortColumns: sortColumns
             }
         }
         if (timeRange) {
@@ -411,6 +414,7 @@ export default class ChartState {
             action.prompts = packFilter(validPrompts)
         }
         if (drillAttribute) action.drillAttribute = drillAttribute
+        if (displayRows) action.limit = displayRows
         if (filter || savedFilter) {
             if (savedFilter) {
                 action.filter = combineFilters(filter, savedFilter.filter)
@@ -666,20 +670,41 @@ export default class ChartState {
             if (this.config.themeID) theme = this.getTheme(this.config.themeID)
             else theme = undefined
         }
+        const parsedSeries =
+            this.config.categoryAxis === 'Time' &&
+            (this.config.seriesType === 'bar' || this.config.seriesType === 'scatter')
+                ? this.series.map((s) => {
+                    return {
+                        ...s,
+                        data: s.data.map((d) => {
+                            return Array.isArray(d) ? [...d].reverse() : d
+                        }),
+                        yAxisIndex: undefined,
+                    }
+                })
+                : this.series
         const option = {
             animation: false,
-            series: this.series,
+            series: parsedSeries,
             tooltip: {
-                trigger: 'item',
-                axisPointer: { type: 'shadow' },
+                trigger: 'axis',
+                axisPointer: {
+                    type: 'line',
+                    crossStyle: {
+                        color: '#999',
+                        width: 1,
+                        type: 'dashed',
+                    },
+                },
                 order: 'valueDesc',
+                confine: true,
             },
             legend: {
                 orient: 'horizontal',
                 top: 'bottom',
                 data: this.categoryLegendData,
             },
-            backgroundColor: 'transparent',
+            backgroundColor: '#FFF',
             title: {
                 text: this.config.chartTitle,
                 left: '50%',

@@ -68,13 +68,14 @@ export function loadFromSavedInsight(
         chartState.clear();
         return;
     }
-    if (!(insight.seriesTypeMap instanceof Map)) insight.seriesTypeMap = new Map();
+    if (Array.isArray(insight.seriesTypeMap)) insight.seriesTypeMap = new Map(insight.seriesTypeMap)
+    if (!(insight.seriesTypeMap instanceof Map)) insight.seriesTypeMap = new Map()
+    if (!insight.usedDrillAttributes) insight.usedDrillAttributes = []
     // START temp backwards stuff
     if (!insight.selectedTableKpis) {
         insight.selectedTableColumns = []
         insight.selectedTableKpis = []
         insight.selectedTables = []
-        insight.displayRows = 50
         insight.tableTimeSeries = true
         if (insight.view === 'table') {
             insight.selectedItems.forEach((item) => {
@@ -117,6 +118,7 @@ export function loadFromSavedInsight(
             })
         }
     }
+    if (!insight.displayRows) insight.displayRows = 50
     if (!insight.worksheetColumns) insight.worksheetColumns = []
     if (!insight.styleOverrides) insight.styleOverrides = {...DEFAULT_CHART_PREFERENCES}
     merge(insight.styleOverrides, DEFAULT_CHART_PREFERENCES)
@@ -174,9 +176,7 @@ export function loadFromSavedInsight(
             ...DEFAULT_CHART_PREFERENCES.donut.label,
         }
     }
-    if (!insight.sorting || typeof insight.sorting === 'string') {
-        insight.sorting = DEFAULT_SORTING
-    }
+    if (!insight.sortColumns) insight.sortColumns = []
     if (!insight.kpiCompareType) {
         insight.kpiCompareType = 'percentage'
         insight.kpiCompareTarget = undefined
@@ -202,8 +202,13 @@ export function loadFromSavedInsight(
     }
     if (!insight.metricsOrder) insight.metricsOrder = []
     // END temp backwards stuff
-    if (!(insight.selectedDates instanceof Map))
-        insight.selectedDates = new Map(Object.entries(insight.selectedDates));
+    if (!(insight.selectedDates instanceof Map)) {
+        if (insight.selectedDates) {
+            insight.selectedDates = new Map(Object.entries(insight.selectedDates))
+        } else {
+            insight.selectedDates = new Map()
+        }
+    }
     setConfig(insight);
     if (insight.view === 'table') {
         chartState.getResults(
