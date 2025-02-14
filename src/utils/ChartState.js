@@ -5,6 +5,7 @@ import {DEFAULT_CHART_PREFERENCES} from "@/utils/styleConsts";
 import {cloneDeep} from "lodash";
 import {backwardsFlag} from "@/pages/api/InsightAPI";
 import {SORTING} from "@/utils/utils";
+import {getFormatter} from "@/utils/kpiUtils";
 
 /**
  * Class contains the following:
@@ -827,54 +828,99 @@ export default class ChartState {
     }
 
     tooltipFormatter(event) {
+        if (!Array.isArray(event)) {
+            event = [event]
+        }
         if (this.config.seriesType === 'scatter') {
+            const firstEvent = event[0]
+            if (!firstEvent || !firstEvent.data) {
+                return ''
+            }
+
             let s =
-                event.marker +
+                firstEvent.marker +
                 '<strong>' +
                 (this.config.categoryAxis === 'Time'
-                    ? this.result.dates[event.dataIndex]
-                    : this.result.categoryAxisValues[event.dataIndex]) +
+                    ? this.result.dates[firstEvent.dataIndex]
+                    : this.result.categoryAxisValues[firstEvent.dataIndex]) +
                 '</strong>' +
-                (this.categories?.length > 1 ? '</br>' + event.seriesName : '') +
+                (this.categories?.length > 1 ? '</br>' + firstEvent.seriesName : '') +
                 '</br>'
+
             if (
-                this.series[event.seriesIndex].formats &&
-                this.series[event.seriesIndex].formats?.length === 2
+                this.series[firstEvent.seriesIndex].formats &&
+                this.series[firstEvent.seriesIndex].formats.length === 2
             ) {
-                s += numeral(event.data[0]).format(this.series[event.seriesIndex].formats[0])
-                s += ', ' + numeral(event.data[1]).format(this.series[event.seriesIndex].formats[1])
+                s += getFormatter(this.series[firstEvent.seriesIndex].formats[0]).format(
+                    firstEvent.data?.[0] || 0
+                )
+                s +=
+                    ', ' +
+                    getFormatter(this.series[firstEvent.seriesIndex].formats[1]).format(
+                        firstEvent.data?.[1] || 0
+                    )
             } else {
-                s += numeral(event.data[0]).format()
-                s += ', ' + numeral(event.data[1]).format()
+                s += getFormatter().format(firstEvent.data?.[0] || 0)
+                s += ', ' + getFormatter().format(firstEvent.data?.[1] || 0)
             }
             return s
         } else {
+            let s = ''
             if (
                 (this.config.seriesType === 'pie' || this.config.seriesType === 'donut') &&
                 this.config.categoryAxis === 'Time'
             ) {
-                let s = event.marker + '<strong>' + event.data.name + '</strong></br>'
-                s += numeral(event.data.value).format(this.series[event.seriesIndex].format)
-                return s
+                let sharedLabel = ''
+                event.forEach((item, index) => {
+                    if (item.data) {
+                        if (index === 0) {
+                            sharedLabel = '<strong>' + item.data.name + '</strong></br>'
+                        }
+                        s +=
+                            item.marker +
+                            getFormatter(this.series[item.seriesIndex].format).format(
+                                item.data.value
+                            ) +
+                            '</br>'
+                    }
+                })
+                s = sharedLabel + s
             } else {
-                let s =
-                    event.marker +
-                    '<strong>' +
-                    (this.config.categoryAxis === 'Time'
-                        ? event.data[0]
-                        : this.categoryAxisValues[event.dataIndex]) +
-                    (this.config.seriesType !== 'waterfall'
-                        ? '</strong></br>' + event.seriesName + '</br>'
-                        : '</br>')
-                let value =
-                    this.config.categoryAxis === 'Time'
-                        ? event.data[1]
-                        : typeof event.data === 'number'
-                            ? event.data
-                            : event.data.value
-                s += numeral(value).format(this.series[event.seriesIndex].format)
-                return s
+                let sharedLabel = ''
+                let seriesValues = ''
+                event.forEach((item, index) => {
+                    if (item.data) {
+                        let categoryLabel =
+                            this.config.categoryAxis === 'Time'
+                                ? Array.isArray(item.data.value)
+                                    ? item.data.value[0]
+                                    : item.data[0]
+                                : this.categoryAxisValues[item.dataIndex]
+
+                        let value =
+                            this.config.categoryAxis === 'Time'
+                                ? Array.isArray(item.data.value)
+                                    ? item.data.value[1]
+                                    : item.data[1]
+                                : typeof item.data === 'number'
+                                    ? item.data
+                                    : item.data.value
+                        if (value > 0) {
+                            if (index === 0) {
+                                sharedLabel = '<strong>' + categoryLabel + '</strong></br>'
+                            }
+                            seriesValues +=
+                                item.marker +
+                                item.seriesName +
+                                ': ' +
+                                getFormatter(this.series[item.seriesIndex].format).format(value) +
+                                '</br>'
+                        }
+                    }
+                })
+                s = sharedLabel + seriesValues
             }
+            return s
         }
     }
 

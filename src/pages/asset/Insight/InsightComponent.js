@@ -558,10 +558,13 @@ const InsightComponent = ({
                 const uniqueSeries = _.uniqBy(config.selectedItems, 'kpi')
                 divisor = uniqueSeries.length
             }
+            const barGapPercentage = parseFloat(overrides.bar?.barGap?.split('%')[0] || '10')
             option.series.forEach((s, i) => {
+                const availableSpace = 100 - (divisor - 1) * barGapPercentage
                 let barWidth =
                     (overrides.bar?.barWidth?.split('%')[0] || BAR_DEFAULT_VALUES.barWidth) /
                     divisor
+                barWidth = (barWidth * availableSpace) / 100
                 if (barWidth) {
                     option.series[i] = {
                         ...s,
@@ -578,10 +581,13 @@ const InsightComponent = ({
                 .map(([columnName]) => columnName)
             if (columnNames.length > 0) {
                 const divisor = columnNames.length
+                const barGapPercentage = parseFloat(overrides.bar?.barGap?.split('%')[0] || '10')
                 option.series.forEach((s, i) => {
+                    const availableSpace = 100 - (divisor - 1) * barGapPercentage
                     let barWidth =
                         (overrides.bar?.barWidth?.split('%')[0] || BAR_DEFAULT_VALUES.barWidth) /
                         divisor
+                    barWidth = (barWidth * availableSpace) / 100
                     if (barWidth && columnNames.includes(s.name)) {
                         option.series[i] = {
                             ...s,
