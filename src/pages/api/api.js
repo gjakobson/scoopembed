@@ -1,16 +1,11 @@
-// api.js
-
 export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
-
-    // if the length of the token is < 100, it's not a real jwt token but rather a guest token
-    const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserver"
+    const API_ENDPOINT = "https://pig8gecvvk.execute-api.us-west-2.amazonaws.com/corsair/sheetserver";
     let useAPIURL = token?.length < 100 ? API_ENDPOINT.replace("sheetserver", "guest-sheetserver") : API_ENDPOINT;
 
     if (isDev) {
         useAPIURL = useAPIURL.replace("mobileapi", "mobileapidev");
         useAPIURL = useAPIURL.replace("sheetserver", "sheetserverdev");
     }
-
 
     const postData = async (action) => {
         if (Array.isArray(action)) {
@@ -22,7 +17,17 @@ export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
             action.workspaceID = workspaceID;
             action.userID = userID;
         }
+
         const url = typeof otherURL === 'undefined' ? useAPIURL : otherURL;
+
+        console.log("🚀 API Request:");
+        console.log("🔹 URL:", url);
+        console.log("🔹 Headers:", {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+        });
+        console.log("🔹 Body:", JSON.stringify(action, null, 2));
+
         try {
             const response = await fetch(url, {
                 method: "POST",
@@ -37,24 +42,26 @@ export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
                 referrerPolicy: "no-referrer",
                 body: JSON.stringify(action),
             });
-            // Check if the response is ok (status in the range 200-299)
+
+            console.log("📩 Received Response:");
+            console.log("🔹 Status:", response.status);
+
+            const responseText = await response.text();
+            console.log("🔹 Raw Response Body:", responseText);
+
             if (!response.ok) {
-                if (response?.message === 'Unauthorized') {
-                    console.log('*****Unauthorized');
-                    // navigate(ROUTES.LOGOUT)
-                }
-                // Not OK - throw an error
-                throw new Error('Network response was not ok', response);
+                console.error("❌ Network error:", response.status, response.statusText);
+                throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
             }
 
-            // Try parsing the response into JSON
-            return await response.json();
+            const jsonResponse = JSON.parse(responseText);
+            console.log("✅ Parsed JSON Response:", jsonResponse);
+            return jsonResponse;
         } catch (error) {
-            console.log(error);
-            // navigate(ROUTES.LOGOUT)
-            // Log any errors that occur during the fetch() or parsing
-            // throw error;
+            console.error("⚠️ Fetch Error:", error.message);
+            return null; // Or throw the error if you need to handle it elsewhere
         }
     };
-    return {postData};
+
+    return { postData };
 };
