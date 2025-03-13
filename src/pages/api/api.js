@@ -7,6 +7,17 @@ export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
         useAPIURL = useAPIURL.replace("sheetserver", "sheetserverdev");
     }
 
+    const logToServer = (message, data = {}) => {
+        console.log(message, data); // Still logs to browser console
+        fetch("/api/log", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ message, data, timestamp: new Date().toISOString() }),
+        }).catch((err) => console.error("Log API error:", err));
+    };
+
+    
+
     const postData = async (action) => {
         if (Array.isArray(action)) {
             action.forEach(a => {
@@ -20,13 +31,13 @@ export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
 
         const url = typeof otherURL === 'undefined' ? useAPIURL : otherURL;
 
-        console.log("🚀 API Request:");
-        console.log("🔹 URL:", url);
-        console.log("🔹 Headers:", {
+        logToServer("🚀 API Request:");
+        logToServer("🔹 URL:", url);
+        logToServer("🔹 Headers:", {
             "Content-Type": "application/json",
             "Authorization": `Bearer ${token}`
         });
-        console.log("🔹 Body:", JSON.stringify(action, null, 2));
+        logToServer("🔹 Body:", JSON.stringify(action, null, 2));
 
         try {
             const response = await fetch(url, {
@@ -43,11 +54,11 @@ export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
                 body: JSON.stringify(action),
             });
 
-            console.log("📩 Received Response:");
-            console.log("🔹 Status:", response.status);
+            logToServer("📩 Received Response:");
+            logToServer("🔹 Status:", response.status);
 
             const responseText = await response.text();
-            console.log("🔹 Raw Response Body:", responseText);
+            logToServer("🔹 Raw Response Body:", responseText);
 
             if (!response.ok) {
                 console.error("❌ Network error:", response.status, response.statusText);
@@ -55,7 +66,7 @@ export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
             }
 
             const jsonResponse = JSON.parse(responseText);
-            console.log("✅ Parsed JSON Response:", jsonResponse);
+            logToServer("✅ Parsed JSON Response:", jsonResponse);
             return jsonResponse;
         } catch (error) {
             console.error("⚠️ Fetch Error:", error.message);
