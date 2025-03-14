@@ -7,16 +7,15 @@ export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
         useAPIURL = useAPIURL.replace("sheetserver", "sheetserverdev");
     }
 
+    // Function to send logs to Vercel API
     const logToServer = (message, data = {}) => {
-        console.log(message, data); // Still logs to browser console
+        console.log(message, data); // Logs to browser console
         fetch("/api/log", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ message, data, timestamp: new Date().toISOString() }),
         }).catch((err) => console.error("Log API error:", err));
     };
-
-    
 
     const postData = async (action) => {
         if (Array.isArray(action)) {
@@ -30,14 +29,15 @@ export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
         }
 
         const url = typeof otherURL === 'undefined' ? useAPIURL : otherURL;
-
-        logToServer("🚀 API Request:");
-        logToServer("🔹 URL:", url);
-        logToServer("🔹 Headers:", {
+        const headers = {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${token}`
-        });
-        logToServer("🔹 Body:", JSON.stringify(action, null, 2));
+            "Authorization": `Bearer ${token}`,
+        };
+
+        const requestBody = JSON.stringify(action, null, 2);
+        logToServer("🚀 API Request Initiated", { url, headers, body: requestBody });
+
+        const startTime = performance.now(); // Start timing
 
         try {
             const response = await fetch(url, {
@@ -45,32 +45,44 @@ export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
                 mode: "cors",
                 cache: "no-cache",
                 credentials: "same-origin",
-                headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
-                },
+                headers,
                 redirect: "follow",
                 referrerPolicy: "no-referrer",
-                body: JSON.stringify(action),
+                body: requestBody,
             });
 
-            logToServer("📩 Received Response:");
-            logToServer("🔹 Status:", response.status);
+            const endTime = performance.now(); // End timing
+            const duration = (endTime - startTime).toFixed(2); // Calculate duration
 
-            const responseText = await response.text();
-            logToServer("🔹 Raw Response Body:", responseText);
+            const rawResponseBody = await response.text(); // Get raw response
+
+            logToServer("📩 API Response Received", {
+                status: response.status,
+                statusText: response.statusText,
+                responseHeaders: Object.fromEntries(response.headers.entries()), // Convert headers to object
+                rawResponseBody,
+                duration: `${duration} ms`,
+            });
 
             if (!response.ok) {
                 console.error("❌ Network error:", response.status, response.statusText);
                 throw new Error(`Network response was not ok: ${response.status} ${response.statusText}`);
             }
 
-            const jsonResponse = JSON.parse(responseText);
-            logToServer("✅ Parsed JSON Response:", jsonResponse);
+            let jsonResponse;
+            try {
+                jsonResponse = JSON.parse(rawResponseBody);
+            } catch (err) {
+                logToServer("⚠️ JSON Parsing Failed", { rawResponseBody, error: err.message });
+                throw new Error("JSON Parsing Failed: " + err.message);
+            }
+
+            logToServer("✅ Parsed JSON Response", jsonResponse);
             return jsonResponse;
         } catch (error) {
             console.error("⚠️ Fetch Error:", error.message);
-            return null; // Or throw the error if you need to handle it elsewhere
+            logToServer("❌ API Request Failed", { error: error.message });
+            return null; // Or throw the error if needed
         }
     };
 
