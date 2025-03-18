@@ -115,6 +115,13 @@ export const V_ALIGNMENT = [
     { label: 'Bottom', value: 'bottom' },
 ]
 
+export const SCOOP_LEGEND_POSITION = [
+    { label: 'Top', value: 'top' },
+    { label: 'Bottom', value: 'bottom' },
+    { label: 'Left', value: 'left' },
+    { label: 'Right', value: 'right' },
+]
+
 export const PIE_ORIENTATIONS = [
     { label: 'Full', value: 'full' },
     { label: 'Left', value: 'left' },
@@ -165,6 +172,7 @@ export const AXIS_TEXT_DEFAULT_VALUES = {
     fontSize: 14,
     color: '#6E7079',
     rotate: 0,
+    maxCharacters: 20,
 }
 
 export const LEGEND_DEFAULT_VALUES = {
@@ -174,6 +182,7 @@ export const LEGEND_DEFAULT_VALUES = {
     backgroundColor: 'transparent',
     maxLegends: 10,
     textStyle: {
+        maxCharacters: 25,
         fontFamily: FONT_FAMILIES[0],
         fontWeight: FONT_WEIGHTS[2].value,
         fontSize: 12,
@@ -184,6 +193,7 @@ export const LEGEND_DEFAULT_VALUES = {
     show: true,
     icon: SYMBOLS[0].value,
     itemSize: 12,
+    scoopPosition: 'bottom',
 }
 
 export const MARGIN_DEFAULT_VALUES = {
@@ -191,6 +201,18 @@ export const MARGIN_DEFAULT_VALUES = {
     right: '10%',
     top: '10%',
     bottom: '10%',
+    tooltip: {
+        trigger: 'axis',
+        axisPointer: {
+            type: 'line',
+            crossStyle: {
+                color: '#999',
+                width: 1,
+                type: 'dashed',
+            },
+        },
+        confine: true,
+    },
 }
 
 export const TITLE_DEFAULT_VALUES = {
@@ -501,11 +523,13 @@ export const DEFAULT_CHART_PREFERENCES = {
             fontWeight: undefined,
             fontSize: undefined,
             color: undefined,
+            maxCharacters: undefined,
         },
         borderColor: undefined,
         borderWidth: undefined,
         icon: undefined,
         itemSize: undefined,
+        scoopPosition: undefined,
     },
     tooltip: {
         borderColor: undefined,
@@ -541,6 +565,7 @@ export const DEFAULT_CHART_PREFERENCES = {
                 fontSize: undefined,
                 color: undefined,
                 rotate: undefined,
+                maxCharacters: undefined,
             },
             nameTextStyle: {
                 fontFamily: undefined,
@@ -568,6 +593,7 @@ export const DEFAULT_CHART_PREFERENCES = {
                 fontSize: undefined,
                 color: undefined,
                 rotate: undefined,
+                maxCharacters: undefined,
             },
             nameTextStyle: {
                 fontFamily: undefined,
