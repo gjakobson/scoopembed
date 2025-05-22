@@ -15,8 +15,8 @@ import {ScoopLoader} from "@/components/ScoopLoader/ScoopLoader";
 import {getDefaultChartPreferences, isLightColor, SORTING} from "@/utils/utils";
 import {
     AXIS_DEFAULT_VALUES, AXIS_TEXT_DEFAULT_VALUES,
-    BAR_DEFAULT_VALUES, GAUGE_DEFAULT_VALUES,
-    LEGEND_DEFAULT_VALUES, PIE_DEFAULT_VALUES, RADIAL_DEFAULT_VALUES,
+    BAR_DEFAULT_VALUES, GAUGE_DEFAULT_VALUES, LABEL_DEFAULT_VALUES,
+    LEGEND_DEFAULT_VALUES, LINE_DEFAULT_VALUES, PIE_DEFAULT_VALUES, RADIAL_DEFAULT_VALUES,
     TITLE_DEFAULT_VALUES
 } from "@/utils/styleConsts";
 import {KPI} from "@/components/KPI/KPI";
@@ -423,24 +423,25 @@ const InsightComponent = ({
                 height) /
             2
 
-        overrides.pie.label.fontSize =
-            (((overrides.pie.label.fontSize || PIE_DEFAULT_VALUES.label.fontSize) /
-                    overrides.dimensions.width) *
-                width +
-                ((overrides.pie.label.fontSize || PIE_DEFAULT_VALUES.label.fontSize) /
-                    overrides.dimensions.height) *
-                height) /
-            2
+        if (config.seriesType === 'pie' || config.seriesType === 'donut') {
+            overrides.label.fontSize =
+                (((overrides.label.fontSize || LABEL_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.width) *
+                    width +
+                    ((overrides.label.fontSize || LABEL_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.height) *
+                    height) /
+                2
 
-        overrides.donut.label.fontSize =
-            (((overrides.donut.label.fontSize || PIE_DEFAULT_VALUES.label.fontSize) /
-                    overrides.dimensions.width) *
-                width +
-                ((overrides.donut.label.fontSize || PIE_DEFAULT_VALUES.label.fontSize) /
-                    overrides.dimensions.height) *
-                height) /
-            2
-
+            overrides.label.fontSize =
+                (((overrides.label.fontSize || LABEL_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.width) *
+                    width +
+                    ((overrides.label.fontSize || LABEL_DEFAULT_VALUES.fontSize) /
+                        overrides.dimensions.height) *
+                    height) /
+                2
+        }
         overrides.radialBar.radiusAxis.axisLabel.fontSize =
             (((overrides.radialBar.radiusAxis.axisLabel.fontSize ||
                         RADIAL_DEFAULT_VALUES.radiusAxis.axisLabel.fontSize) /
@@ -778,12 +779,35 @@ const InsightComponent = ({
         applyFontScale(overrides, width, height)
 
         if (config.seriesType === 'bar') {
-            // Distributing the overrides to xAxis and yAxis for bar charts
+            const xAxisOverrides = overrides.yAxis || []
+            const yAxisOverrides = overrides.xAxis || []
             option.xAxis.forEach((axisObject, i) => {
-                option.xAxis[i] = { ...axisObject, ...overrides.yAxis[i] }
+                if (xAxisOverrides[i]) {
+                    option.xAxis[i] = {
+                        ...axisObject,
+                        ...xAxisOverrides[i],
+                        position: 'bottom',
+                        axisLabel: {
+                            ...axisObject.axisLabel,
+                            ...xAxisOverrides[i]?.axisLabel,
+                            align: 'bottom',
+                        },
+                    }
+                }
             })
             option.yAxis.forEach((axisObject, i) => {
-                option.yAxis[i] = { ...axisObject, ...overrides.xAxis[i] }
+                if (yAxisOverrides[i]) {
+                    option.yAxis[i] = {
+                        ...axisObject,
+                        ...yAxisOverrides[i],
+                        position: 'left',
+                        axisLabel: {
+                            ...axisObject.axisLabel,
+                            ...yAxisOverrides[i]?.axisLabel,
+                            align: 'right',
+                        },
+                    }
+                }
             })
             if (option.series.some((s) => s.yAxisIndex !== undefined)) {
                 option.series.forEach((s, i) => {
@@ -1279,11 +1303,11 @@ const InsightComponent = ({
             config.seriesType === 'bar'
         ) {
             option.series.forEach((series) => {
-                series.data = series.data.toReversed()
+                if (series.data) series.data = series.data.toReversed()
             })
-            // option.yAxis.forEach((axis) => {
-            //     axis.data = axis.data.toReversed()
-            // })
+            option.yAxis.forEach((axis) => {
+                if (axis.data) axis.data = axis.data.toReversed()
+            })
         }
 
         // check for axis title removal
@@ -1317,6 +1341,24 @@ const InsightComponent = ({
 
         // reduce legend left padding
         option.legend.textStyle.padding = [0, 0, 0, -3]
+
+        // Apply label config to all series
+        for (const s of option.series) {
+            if (config.seriesType === 'column' || config.seriesType === 'bar') {
+                s.label = {
+                    position: config.styleOverrides?.bar?.position || BAR_DEFAULT_VALUES.position,
+                }
+            } else if (config.seriesType === 'line') {
+                s.label = {
+                    position: config.styleOverrides?.line?.position || LINE_DEFAULT_VALUES.position,
+                }
+            } else if (config.seriesType === 'pie') {
+                s.label = {
+                    position: config.styleOverrides?.pie?.position || PIE_DEFAULT_VALUES.position,
+                    show: config.styleOverrides?.label?.show ?? LABEL_DEFAULT_VALUES.show,
+                }
+            }
+        }
 
         if (option.title.top === '0%' && (screenshot || urlPrompt)) {
             option.title.top = '5%'

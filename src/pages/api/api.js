@@ -9,7 +9,7 @@ export const useApi = (isDev, token, userID, workspaceID, otherURL) => {
 
     // Function to send logs to Vercel API
     const logToServer = (message, data = {}) => {
-        console.log(message, data); // Logs to browser console
+        //console.log(message, data); // Logs to browser console
         fetch("/api/log", {
             method: "POST",
             headers: { "Content-Type": "application/json" },

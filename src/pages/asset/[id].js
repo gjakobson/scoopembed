@@ -12,6 +12,7 @@ const SheetletComponent = dynamic(() => import('./SheetletComponent'), { ssr: fa
 const InsightComponent = dynamic(() => import('./Insight/InsightComponent'), { ssr: false });
 const PromptWrapperComponent = dynamic(() => import('./Prompt/PromptWrapperComponent'), { ssr: false });
 const ProcessComponent = dynamic(() => import('./Process/ProcessComponent'), { ssr: false });
+const GenericComponent = dynamic(() => import('./Generic/GenericComponent'), { ssr: false });
 
 // NOTES FOR TESTING:
 // prompt: https://embed.scoopanalytics.com/asset/prompt?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W475:C416:DAGNq3u-Fng:screenshot=true:invite=Omega105-012:isDev=true
@@ -19,6 +20,7 @@ const ProcessComponent = dynamic(() => import('./Process/ProcessComponent'), { s
 // chart: https://embed.scoopanalytics.com/asset/chart?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W475:I2301:DAGNq3u-Fng:screenshot=true:invite=Omega105-012:isDev=true
 // chart: https://embed.scoopanalytics.com/asset/chart?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W475:I2302:DAGNq3u-Fng:screenshot=true:invite=Omega105-012:isDev=true
 // worksheet chart: https://embed.scoopanalytics.com/asset/chart?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W475:I2193:DAGNq3u-Fng:screenshot=true:invite=Omega105-012:isDev=true
+// generic: https://embed.scoopanalytics.com/asset/generic?q=fc7acca1-6381-4052-8aeb-d46d7e13e76c:W1589:C8496|0.813910486963157:DAGNq3u-Fng:screenshot=true:invite=Omega105-012:isDev=true
 
 export async function getServerSideProps(context) {
 
@@ -95,7 +97,7 @@ const AuthenticatedContent = withAuth(({
     const [server, setServer] = useState(new Server(workspaceID, userID, token, isDev));
     const { sendMessage, lastMessage, readyState } = useWebSocket('wss://yf8adv3utf.execute-api.us-west-2.amazonaws.com/production/', { shouldReconnect: () => true })
 
-    console.log('version 1.0.2')
+    console.log('version 1.0.3')
 
     useEffect(() => {
         if (invite) {
@@ -196,6 +198,17 @@ const AuthenticatedContent = withAuth(({
                         socketConnected={readyState === 1}
                         screenshot={screenshotParams[0] === 'true'}
                         sendMessage={sendMessage}
+                    />
+                )
+            case 'generic':
+                return (
+                    <GenericComponent
+                        isDev={isDev}
+                        token={token}
+                        workspaceID={workspaceID}
+                        userID={userID}
+                        canvasID={params[0]}
+                        elementID={params[1]}
                     />
                 )
             default: return <Box>No asset specified</Box>

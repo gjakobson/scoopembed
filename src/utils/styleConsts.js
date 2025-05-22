@@ -25,6 +25,7 @@ export const CONFIG_OPTIONS = {
     KPI_VALUE: 'kpiValue',
     KPI_COMPARE: 'kpiCompare',
     KPI_BODY: 'kpiBody',
+    LABEL: 'label',
 }
 
 export const CONFIG_BUTTONS = [
@@ -142,6 +143,17 @@ export const EMPHASIS_OPTIONS = [
     { label: 'Self', value: 'self' },
 ]
 
+export const LABEL_DEFAULT_VALUES = {
+    show: false,
+    fontSize: 12,
+    fontWeight: FONT_WEIGHTS[2].value,
+    fontFamily: FONT_FAMILIES[0],
+    color: '#6E7079',
+    rotate: 0,
+    align: H_ALIGNMENT[1].value,
+    verticalAlign: V_ALIGNMENT[1].value,
+}
+
 export const PIE_DEFAULT_VALUES = {
     radius: ['0%', '60%'],
     padAngle: 0,
@@ -159,6 +171,7 @@ export const PIE_DEFAULT_VALUES = {
     itemStyle: {
         borderRadius: 0,
     },
+    position: 'outside',
 }
 
 export const DONUT_DEFAULT_VALUES = {
@@ -267,6 +280,7 @@ export const BAR_DEFAULT_VALUES = {
     itemStyle: {
         borderRadius: [5, 5, 0, 0],
     },
+    position: 'outside',
 }
 
 export const LINE_DEFAULT_VALUES = {
@@ -276,6 +290,7 @@ export const LINE_DEFAULT_VALUES = {
     lineStyle: {
         width: 2,
     },
+    position: 'left',
 }
 
 export const WATERFALL_DEFAULT_VALUES = {
@@ -498,6 +513,7 @@ export const CHART_PREFERENCES_DEFAULT_VALUES = {
     radialBar: RADIAL_DEFAULT_VALUES,
     table: TABLE_DEFAULT_VALUES,
     kpi: KPI_DEFAULT_VALUES,
+    label: LABEL_DEFAULT_VALUES,
 }
 
 export const DEFAULT_CHART_PREFERENCES = {
@@ -828,6 +844,16 @@ export const DEFAULT_CHART_PREFERENCES = {
             borderRadius: undefined,
             padding: undefined,
         },
+    },
+    label: {
+        show: undefined,
+        fontSize: undefined,
+        fontWeight: undefined,
+        fontFamily: undefined,
+        color: undefined,
+        rotate: undefined,
+        align: undefined,
+        verticalAlign: undefined,
     },
 }
 
