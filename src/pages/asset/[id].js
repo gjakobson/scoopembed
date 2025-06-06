@@ -97,7 +97,7 @@ const AuthenticatedContent = withAuth(({
     const [server, setServer] = useState(new Server(workspaceID, userID, token, isDev));
     const { sendMessage, lastMessage, readyState } = useWebSocket('wss://yf8adv3utf.execute-api.us-west-2.amazonaws.com/production/', { shouldReconnect: () => true })
 
-    console.log('version 1.0.3')
+    console.log('version 1.0.4')
 
     useEffect(() => {
         if (invite) {

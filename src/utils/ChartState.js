@@ -464,7 +464,8 @@ export default class ChartState {
             (this.config.seriesType === 'scatter' && newSeriesType !== 'scatter') ||
             (this.config.seriesType !== 'scatter' && newSeriesType === 'scatter') ||
             (this.config.seriesType === 'bar' && newSeriesType !== 'bar') ||
-            (this.config.seriesType !== 'bar' && newSeriesType === 'bar')
+            (this.config.seriesType !== 'bar' && newSeriesType === 'bar') ||
+            (this.config.seriesType === 'heatmap' && newSeriesType !== 'heatmap')
         ) {
             this.series = this.processData(newSeriesType, this.result)
         }
@@ -649,7 +650,7 @@ export default class ChartState {
     getOption(themeId) {
         let categoryAxisSettings
         if (this.config.categoryAxis === 'Time') {
-            categoryAxisSettings = { type: 'category' }
+            categoryAxisSettings = { type: 'category', data: this.result.dates }
         } else {
             categoryAxisSettings = {
                 name: this.categoryAxis,
@@ -778,7 +779,63 @@ export default class ChartState {
             if (axis) this.setAxisTheme(axis, axisColor)
         })
 
+        if (this.config.seriesType === 'heatmap') {
+            option.xAxis = [
+                {
+                    type: 'category',
+                    data: this.categoryAxisValues,
+                    splitArea: { show: true },
+                },
+            ]
+            option.yAxis = [
+                {
+                    type: 'category',
+                    data: this.categories,
+                    splitArea: { show: true },
+                },
+            ]
+            option.series = [
+                {
+                    name: this.result.series[0].metric,
+                    data: this.categories
+                        .map((catValue, i) => {
+                            return this.categoryAxisValues.map((cat, j) => {
+                                return [cat, catValue, this.result.series[i]?.data[j]]
+                            })
+                        })
+                        .flat(),
+                    type: 'heatmap',
+                    label: { show: true },
+                    emphasis: {
+                        itemStyle: {
+                            shadowBlur: 10,
+                            shadowColor: 'rgba(0, 0, 0, 0.5)',
+                        },
+                    },
+                    format: this.result?.metrics[0]?.format || null,
+                },
+            ]
+            this.series = option.series
+            const values = option.series[0].data
+                .map((row) => row[2])
+                .filter((value) => value !== null)
+                .map((value) => Number(value))
+            const maxValue = Math.max(...values)
+            option.visualMap = {
+                min: 0,
+                max: maxValue,
+                calculable: true,
+                orient: 'horizontal',
+                left: 'center',
+                bottom: '5%',
+            }
+        }
+
         option.tooltip.formatter = (event) => this.tooltipFormatter(event)
+        option.label = {
+            formatter: (params) => this.labelFormatter(params),
+        }
+
         return option
     }
 
@@ -825,6 +882,33 @@ export default class ChartState {
         axis.axisLine = axis.axisLine
             ? { ...axis.axisLine, lineStyle: { color: color } }
             : { lineStyle: { color: color } }
+    }
+
+    labelFormatter(params) {
+        const formatOrEmpty = (value, short) => {
+            if (value === 0) return null
+            const formattedVal = getFormatter(
+                this.series[params.seriesIndex]?.format,
+                short
+            )?.format(value)
+            if (params?.data?.name && this.config.seriesType === 'pie')
+                return `${params?.data?.name} \n ${formattedVal}`
+            return formattedVal
+        }
+
+        if (Array.isArray(params.data)) {
+            if (params.data.length === 2) {
+                return formatOrEmpty(params.data[1])
+            } else if (params.data.length === 3) {
+                return formatOrEmpty(params.data[2], true)
+            } else {
+                return formatOrEmpty(params.data[0])
+            }
+        } else if (params?.data?.value !== undefined) {
+            return formatOrEmpty(params.data.value)
+        } else {
+            return formatOrEmpty(params.data) || ''
+        }
     }
 
     tooltipFormatter(event) {
@@ -885,6 +969,15 @@ export default class ChartState {
                     }
                 })
                 s = sharedLabel + s
+            } else if (this.config.seriesType === 'heatmap') {
+                const item = event[0]
+                s +=
+                    item.marker +
+                    getFormatter(this.series[item.seriesIndex].format).format(item.data[2]) +
+                    '</br>' +
+                    '<strong>' +
+                    item.name +
+                    '</strong></br>'
             } else {
                 let sharedLabel = ''
                 let seriesValues = ''

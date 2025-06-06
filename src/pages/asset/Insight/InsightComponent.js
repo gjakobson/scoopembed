@@ -743,6 +743,13 @@ const InsightComponent = ({
             }
         }
 
+        if (config.seriesType === 'heatmap') {
+            option.tooltip.trigger = 'item'
+            if (overrides.grid?.tooltip?.axisPointer) {
+                overrides.grid.tooltip.trigger = 'item'
+            }
+        }
+
         overrides.yAxis.forEach((axis) => {
             if (axis.show === undefined) axis.show = AXIS_DEFAULT_VALUES.show
             if (axis.splitLine.show === undefined)
@@ -1358,6 +1365,20 @@ const InsightComponent = ({
                     show: config.styleOverrides?.label?.show ?? LABEL_DEFAULT_VALUES.show,
                 }
             }
+        }
+
+        if (config.seriesType === 'heatmap') {
+            option.grid.left = '5%'
+            option.grid.top = '10%'
+            option.grid.right = '5%'
+            delete option.label.color
+            option.xAxis[0].axisLabel.rotate = option.xAxis[0].data.length > 5 ? 45 : 0
+            option.xAxis[0].axisLabel.fontSize = option.xAxis[0].data.length > 5 ? 12 : 14
+            option.yAxis[0].axisLabel.fontSize = option.yAxis[0].data.length > 10 ? 12 : 14
+            option.series[0].label.fontSize = option.xAxis[0].data.length > 5 ? 8 : 12
+            option.series[0].label.rotate = option.xAxis[0].data.length > 5 ? 45 : 0
+            // option.series[0].label.overflow = 'truncate'
+            // option.series[0].label.width = 20
         }
 
         if (option.title.top === '0%' && (screenshot || urlPrompt)) {
