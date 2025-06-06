@@ -244,7 +244,7 @@ export const getKPIStyles = (theme, config, container) => {
     return { containerStyles, titleStyles, valueStyles, compareStyles }
 }
 
-export const getFormatter = (format) => {
+export const getFormatter = (format, short) => {
     let options = {
         style: 'decimal',
         minimumFractionDigits: 0,
@@ -265,7 +265,7 @@ export const getFormatter = (format) => {
     }
     if (commaIndex !== -1) options.useGrouping = true
     const shortFormats = ['K', 'M', 'B']
-    if (shortFormats.some((s) => format.includes(s))) {
+    if (shortFormats.some((s) => format.includes(s)) || short) {
         options.notation = 'compact'
     }
     return new Intl.NumberFormat('en-US', options)
